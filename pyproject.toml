@@ -40,6 +40,9 @@ dependencies = [
     "fastapi>=0.115.0",
     "uvicorn>=0.30.0",
     "python-multipart>=0.0.9",
+    "pyjwt>=2.10.1",
+    "bcrypt>=4.3.0",
+    "slowapi>=0.1.9",
 ]
 
 [project.optional-dependencies]

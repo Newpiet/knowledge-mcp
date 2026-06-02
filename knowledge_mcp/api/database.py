@@ -64,8 +64,10 @@ def init_db(base_dir: str = "/app/kb") -> None:
 
 
 def get_connection(base_dir: str = "/app/kb") -> sqlite3.Connection:
-    """Get a database connection."""
+    """Get a database connection with WAL mode and a busy timeout."""
     db_path = get_db_path(base_dir)
-    conn = sqlite3.connect(str(db_path))
+    conn = sqlite3.connect(str(db_path), timeout=30)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA busy_timeout=5000")
     return conn

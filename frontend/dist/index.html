@@ -3,39 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>耘智 YunZhi — 农业专属大模型知识中枢</title>
+    <title>Zeelin 农业 — 农业专属大模型知识中枢</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
-:root{--bg:#fdfcf9;--ink:#2f3630;--muted:#7b857d;--line:#e6e5dd;--panel:#ffffff;--accent:#789980;--accent-hover:#5d7d65;--accent-light:#eef2ef;--accent-ink:#ffffff;--danger:#d97878;--danger-light:#fbecec;--shadow-sm:0 4px 16px rgba(47,54,48,0.04);--shadow-md:0 12px 32px rgba(47,54,48,0.06);--shadow-lg:0 24px 64px rgba(47,54,48,0.08)}
+:root{
+  --bg:#fdfcf9;--ink:#2f3630;--muted:#7b857d;--line:#e6e5dd;
+  --panel:#ffffff;--accent:#789980;--accent-hover:#5d7d65;
+  --accent-light:#eef2ef;--accent-ink:#ffffff;
+  --danger:#d97878;--danger-light:#fbecec;
+  --warn:#b5850b;--warn-light:#fff9e6;
+  --shadow-sm:0 4px 16px rgba(47,54,48,.04);
+  --shadow-md:0 12px 32px rgba(47,54,48,.06);
+  --shadow-lg:0 24px 64px rgba(47,54,48,.08);
+  --radius-sm:12px;--radius-md:20px;--radius-lg:28px;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 body{min-height:100vh;color:var(--ink);background:var(--bg);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
-h1,h2,h3,h4{font-family:'Outfit','Inter',sans-serif;letter-spacing:-0.01em}
+h1,h2,h3,h4{font-family:'Outfit','Inter',sans-serif;letter-spacing:-.01em}
 .container{max-width:1240px;margin:0 auto;padding:0 32px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:40px;font-size:14px;font-weight:500;font-family:'Inter',sans-serif;border:1px solid transparent;cursor:pointer;transition:all .25s cubic-bezier(.2,.8,.2,1);text-decoration:none}
-.btn-primary{background:var(--accent);color:var(--accent-ink)}.btn-primary:hover{background:var(--accent-hover);transform:translateY(-2px);box-shadow:0 8px 20px rgba(120,153,128,.25)}.btn-primary:disabled{background:var(--muted);opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
-.btn-secondary{background:var(--panel);color:var(--ink);border-color:var(--line);box-shadow:var(--shadow-sm)}.btn-secondary:hover{background:var(--accent-light);border-color:var(--accent-light);transform:translateY(-2px)}
-.btn-danger{background:var(--danger-light);color:var(--danger);border-color:transparent;padding:6px 14px;font-size:13px;border-radius:40px}.btn-danger:hover{background:var(--danger);color:#fff}
-.btn-sm{padding:6px 14px;font-size:13px}.btn-lg{padding:14px 32px;font-size:15px}
-.glass-panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow-sm)}
-.hover-card{transition:all .35s cubic-bezier(.2,.8,.2,1);cursor:pointer}.hover-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:rgba(120,153,128,.4)!important}
-@keyframes spin{to{transform:rotate(360deg)}}@keyframes slideUp{from{opacity:0;transform:translateY(30px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.animate-slide-up{animation:slideUp .6s cubic-bezier(.16,1,.3,1) forwards}.animate-fade-in{animation:fadeIn .5s ease forwards}
-.spinner{width:16px;height:16px;border:2px solid rgba(120,153,128,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s ease-in-out infinite}
-.form-input{width:100%;border:1px solid var(--line);border-radius:16px;padding:14px 16px;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s;background:#fff;color:var(--ink)}.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(120,153,128,.12)}.form-input::placeholder{color:#b0b8b2}
-textarea.form-input{min-height:80px;resize:vertical;line-height:1.6}
-.form-label{display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:8px}.form-label .opt{font-size:13px;color:var(--muted);font-weight:400}
-.header{background:rgba(255,255,255,.8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.4);box-shadow:0 4px 20px rgba(15,41,30,.03);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.upload-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;border:1.5px dashed var(--accent);border-radius:24px;padding:48px 24px;text-align:center;cursor:pointer;background:var(--accent-light);transition:.2s;position:relative}.upload-zone:hover,.upload-zone.dragover{background:#e2ebd6;border-color:var(--accent-hover)}.upload-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer}
-.file-item{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.03);margin-bottom:10px}
-.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;border-radius:40px;font-weight:600}
-.badge-completed,.badge-active{background:#f0f5f2;color:var(--accent)}.badge-processing{background:#fff9e6;color:#b5850b}.badge-failed{background:var(--danger-light);color:var(--danger)}.badge-pending{background:#f3f4f6;color:var(--muted)}
-.modal-overlay{position:fixed;inset:0;background:rgba(47,54,48,.6);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
-.modal-body{background:#fff;border-radius:32px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.15)}
-.search-result{margin-top:16px;padding:20px;background:#fafafa;border:1px solid var(--line);border-radius:16px;font-size:14px;line-height:1.8;white-space:pre-wrap;max-height:500px;overflow-y:auto}
-.toast-container{position:fixed;bottom:32px;right:32px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none}
-.toast{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:16px;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,.12);border:1px solid var(--line);pointer-events:auto;min-width:280px;max-width:400px;font-size:14px;font-weight:500}.toast.error{border-color:var(--danger-light)}
-.kb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:24px}
-::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(123,133,125,.2);border-radius:4px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:40px;font-size:14px;font-weight:500;font-family:'Inter',sans-serif;border:1px solid transparent;cursor:pointer;transition:all .22s cubic-bezier(.2,.8,.2,1);text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 6px 18px rgba(120,153,128,.28)}.btn-primary:disabled{background:var(--muted);opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-secondary{background:var(--panel);color:var(--ink);border-color:var(--line);box-shadow:var(--shadow-sm)}.btn-secondary:hover{background:var(--accent-light);border-color:rgba(120,153,128,.3);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--muted);border-color:transparent}.btn-ghost:hover{background:var(--accent-light);color:var(--accent)}
+.btn-danger{background:var(--danger-light);color:var(--danger);border-color:transparent}.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-sm{padding:6px 14px;font-size:13px}.btn-lg{padding:13px 32px;font-size:15px}
+.btn-icon{width:36px;height:36px;padding:0;border-radius:10px}
+
+/* Panels */
+.glass-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm)}
+.hover-card{transition:all .3s cubic-bezier(.2,.8,.2,1);cursor:pointer}
+.hover-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg);border-color:rgba(120,153,128,.35)!important}
+
+/* Animations */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.animate-slide-up{animation:slideUp .5s cubic-bezier(.16,1,.3,1) forwards}
+.animate-fade-in{animation:fadeIn .4s ease forwards}
+.spinner{width:14px;height:14px;border:2px solid rgba(120,153,128,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s ease-in-out infinite;flex-shrink:0}
+.spinner-lg{width:20px;height:20px;border-width:2.5px}
+
+/* Forms */
+.form-input{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:12px 16px;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border-color .18s,box-shadow .18s;background:#fff;color:var(--ink)}.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(120,153,128,.1)}.form-input::placeholder{color:#b0b8b2}
+textarea.form-input{min-height:84px;resize:vertical;line-height:1.6}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:7px}.form-label .opt{font-size:12px;color:var(--muted);font-weight:400}
+.form-group{margin-bottom:18px}
+
+/* Header */
+.header{background:rgba(253,252,249,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(230,229,221,.6);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{font-size:26px;line-height:1}
+.brand-name{font-size:18px;font-weight:800;color:var(--ink);font-family:'Outfit',sans-serif}
+.brand-sub{font-size:11px;color:var(--muted);font-weight:500;margin-top:1px}
+
+/* Upload zone */
+.upload-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;border:1.5px dashed var(--accent);border-radius:20px;padding:36px 24px;text-align:center;cursor:pointer;background:var(--accent-light);transition:.2s;position:relative}
+.upload-zone:hover,.upload-zone.dragover{background:#e2ebd6;border-color:var(--accent-hover)}
+.upload-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+/* File list */
+.file-item{display:flex;align-items:center;gap:14px;padding:13px 16px;background:#fff;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.03);margin-bottom:8px;transition:.2s}
+.file-item.status-failed{border-left-color:var(--danger)}
+.file-item.status-queued,.file-item.status-processing{border-left-color:var(--warn)}
+.file-icon{width:36px;height:36px;flex-shrink:0;background:var(--bg);border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);font-size:15px}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 10px;border-radius:40px;font-weight:600}
+.badge-completed,.badge-active{background:#eef5f1;color:var(--accent)}
+.badge-processing{background:var(--warn-light);color:var(--warn);animation:pulse 1.8s ease-in-out infinite}
+.badge-queued{background:#f3f4f6;color:var(--muted);animation:pulse 2s ease-in-out infinite}
+.badge-failed{background:var(--danger-light);color:var(--danger)}
+.badge-pending{background:#f3f4f6;color:var(--muted)}
+
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(47,54,48,.55);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-body{background:#fff;border-radius:28px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,.16)}
+
+/* Code block */
+.code-block{background:#f6f7f5;border:1px solid var(--line);border-radius:12px;padding:16px;font-family:'SF Mono',Monaco,'Cascadia Code',monospace;font-size:12.5px;line-height:1.7;color:var(--ink);overflow-x:auto;position:relative;white-space:pre}
+.copy-btn{position:absolute;top:10px;right:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:.18s;font-family:'Inter',sans-serif}
+.copy-btn:hover{background:var(--accent-light);color:var(--accent);border-color:rgba(120,153,128,.3)}
+.copy-btn.copied{background:var(--accent-light);color:var(--accent)}
+
+/* Search result */
+.search-result{margin-top:14px;padding:18px;background:#fafaf8;border:1px solid var(--line);border-radius:14px;font-size:14px;line-height:1.85;white-space:pre-wrap;max-height:460px;overflow-y:auto;color:var(--ink)}
+
+/* Toast */
+.toast-container{position:fixed;bottom:28px;right:28px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;background:#fff;box-shadow:0 8px 28px rgba(0,0,0,.12);border:1px solid var(--line);pointer-events:auto;min-width:260px;max-width:380px;font-size:13.5px;font-weight:500}
+.toast.error{border-left:3px solid var(--danger)}
+.toast.success{border-left:3px solid var(--accent)}
+
+/* KB Grid */
+.kb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+
+/* Stat row */
+.stat-row{display:flex;align-items:center;gap:0;padding:16px 0;border-top:1px solid var(--line);margin-top:16px}
+.stat-item{display:flex;flex-direction:column;gap:2px;padding:0 20px;flex:1}
+.stat-item:first-child{padding-left:0}
+.stat-divider{width:1px;height:32px;background:var(--line)}
+.stat-label{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.03em}
+.stat-value{font-size:20px;font-weight:700;font-family:'Outfit',sans-serif}
+
+/* Inline confirm */
+.confirm-inline{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--danger-light);border-radius:12px;font-size:13px;color:var(--danger)}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px}
+.tab{padding:6px 14px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);transition:.18s;border:none;background:none;font-family:'Inter',sans-serif}
+.tab.active{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+
+/* Section header */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-size:17px;font-weight:700}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(123,133,125,.18);border-radius:3px}
     </style>
 </head>
 <body>
@@ -43,163 +131,531 @@ textarea.form-input{min-height:80px;resize:vertical;line-height:1.6}
 <div class="toast-container" id="toast-container"></div>
 
 <script>
-const API='/api';
-const ALLOWED_EXT=new Set(['.pdf','.txt','.md','.markdown','.rst','.docx','.doc','.pptx','.xlsx','.xls','.html','.csv','.tsv','.json','.rtf']);
-let token=localStorage.getItem('yz_token');
-let currentUser=null;
-let authMode='login';
+const API = '/api';
+const ALLOWED_EXT = new Set(['.pdf','.txt','.md','.markdown','.rst','.docx','.doc','.pptx','.xlsx','.xls','.html','.csv','.tsv','.json','.rtf']);
+let token = localStorage.getItem('yz_token');
+let currentUser = null;
+let authMode = 'login';
 
-// State
-let page='dashboard'; // dashboard | detail
-let kbs=[];
-let currentKB=null;
-let docs=[];
-let showCreateModal=false;
+let page = 'dashboard';
+let kbs = [];
+let currentKB = null;
+let docs = [];
+let showCreateModal = false;
+let queryMode = 'hybrid';
+// doc_id -> EventSource (for SSE cleanup)
+const sseMap = {};
+// doc_id -> confirm pending
+let confirmKBDelete = false;
 
-// ─── Toast ───
-let tid=0;
-function toast(msg,type='success'){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className=`toast animate-slide-up ${type}`;t.innerHTML=`<span>${type==='error'?'⚠️':'✓'}</span><span style="flex:1">${esc(msg)}</span><button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px">✕</button>`;c.appendChild(t);setTimeout(()=>t.remove(),3500)}
-
-// ─── API ───
-async function api(path,opts={}){const h={...(opts.headers||{})};if(token)h['Authorization']=`Bearer ${token}`;if(!(opts.body instanceof FormData))h['Content-Type']='application/json';const res=await fetch(`${API}${path}`,{...opts,headers:h});if(res.status===401){logout();throw new Error('请重新登录')}const data=await res.json();if(!res.ok)throw new Error(data.detail||'请求失败');return data}
-
-// ─── Auth ───
-function saveAuth(d){token=d.token;localStorage.setItem('yz_token',token);currentUser=d;page='dashboard';render()}
-function logout(){token=null;currentUser=null;localStorage.removeItem('yz_token');page='dashboard';render()}
-
-async function handleRegister(e){e.preventDefault();const b=e.target.querySelector('button[type="submit"]');b.disabled=true;try{const d=await api('/auth/register',{method:'POST',body:JSON.stringify({username:e.target.username.value,password:e.target.password.value,display_name:e.target.display_name.value||null})});toast('注册成功，欢迎使用耘智平台');saveAuth(d)}catch(err){toast(err.message,'error')}finally{b.disabled=false}}
-async function handleLogin(e){e.preventDefault();const b=e.target.querySelector('button[type="submit"]');b.disabled=true;try{const d=await api('/auth/login',{method:'POST',body:JSON.stringify({username:e.target.username.value,password:e.target.password.value})});toast('登录成功');saveAuth(d)}catch(err){toast(err.message,'error')}finally{b.disabled=false}}
-
-// ─── KBs ───
-async function loadKBs(){try{kbs=await api('/knowledge-bases');renderDashboardContent()}catch(e){console.error(e)}}
-async function createKB(e){e.preventDefault();const b=e.target.querySelector('button[type="submit"]');b.disabled=true;try{const d=await api('/knowledge-bases',{method:'POST',body:JSON.stringify({name:e.target.kb_name.value,description:e.target.kb_desc.value||null,domain:e.target.kb_domain.value||'农业'})});toast(`知识库「${d.name}」创建成功`);showCreateModal=false;openKBDetail(d.id)}catch(err){toast(err.message,'error')}finally{b.disabled=false}}
-async function deleteKB(id,name){if(!confirm(`确定要删除知识库「${name}」吗？\n所有文件、索引和向量数据将永久删除，此操作不可恢复。`))return;try{await api(`/knowledge-bases/${id}`,{method:'DELETE'});toast(`知识库「${name}」已删除`);page='dashboard';render()}catch(err){toast(err.message,'error')}}
-
-// ─── KB Detail ───
-async function openKBDetail(id){try{currentKB=await api(`/knowledge-bases/${id}`);page='detail';render()}catch(err){toast(err.message,'error')}}
-async function loadDocs(){if(!currentKB)return;try{docs=await api(`/knowledge-bases/${currentKB.id}/documents`);renderDocList()}catch(e){console.error(e)}}
-async function uploadFile(file){const ext='.'+file.name.split('.').pop().toLowerCase();if(!ALLOWED_EXT.has(ext)){toast(`不支持的文件类型: ${ext}`,'error');return}const form=new FormData();form.append('file',file);try{await api(`/knowledge-bases/${currentKB.id}/documents`,{method:'POST',body:form});toast(`${file.name} 上传成功，正在构建索引...`);loadDocs()}catch(err){toast('上传失败: '+err.message,'error')}}
-async function deleteDoc(id,name){if(!confirm(`确定要删除「${name}」吗？`))return;try{await api(`/knowledge-bases/${currentKB.id}/documents/${id}`,{method:'DELETE'});toast('文档已删除');loadDocs()}catch(err){toast(err.message,'error')}}
-async function handleQuery(e){e.preventDefault();const input=e.target.querySelector('input');const btn=e.target.querySelector('button');if(!input.value.trim())return;btn.disabled=true;const el=document.getElementById('search-result');el.style.display='block';el.innerHTML='<div style="display:flex;align-items:center;gap:10px;color:var(--muted)"><div class="spinner"></div> 正在检索知识库...</div>';try{const d=await api(`/knowledge-bases/${currentKB.id}/query`,{method:'POST',body:JSON.stringify({query:input.value,mode:'hybrid'})});el.textContent=d.answer}catch(err){el.innerHTML=`<span style="color:var(--danger)">查询失败: ${esc(err.message)}</span>`}finally{btn.disabled=false}}
-
-// ─── Render ───
-function renderDocList(){
-    const el=document.getElementById('doc-list');const statsEl=document.getElementById('doc-stats');if(!el)return;
-    const total=docs.length,completed=docs.filter(d=>d.status==='completed').length,processing=docs.filter(d=>d.status==='processing').length;
-    if(statsEl)statsEl.innerHTML=`<div style="display:flex;flex-direction:column"><span style="font-size:12px;color:var(--muted)">文件总量</span><span style="font-size:22px;font-weight:600;color:var(--ink);font-family:Outfit">${total}</span></div><div style="width:1px;height:30px;background:var(--line)"></div><div style="display:flex;flex-direction:column"><span style="font-size:12px;color:var(--muted)">索引完成</span><span style="font-size:22px;font-weight:600;color:var(--accent);font-family:Outfit">${completed}</span></div><div style="width:1px;height:30px;background:var(--line)"></div><div style="display:flex;flex-direction:column"><span style="font-size:12px;color:var(--muted)">构建中</span><span style="font-size:22px;font-weight:600;color:#b5850b;font-family:Outfit">${processing}</span></div>`;
-    if(total===0){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:14px">暂无文档，请上传您的农业知识文件</div>';return}
-    el.innerHTML=docs.map(d=>`<div class="file-item animate-fade-in"><div style="display:flex;align-items:center;gap:12px;overflow:hidden;flex:1"><div style="width:38px;height:38px;flex-shrink:0;background:var(--bg);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--accent);border:1px solid var(--line);font-size:16px">📄</div><div style="overflow:hidden"><div style="font-size:14px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.original_name)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px"><span style="color:var(--accent);font-weight:500">${formatSize(d.file_size)}</span> · ${formatDate(d.created_at)}</div></div></div><div style="display:flex;align-items:center;gap:10px"><span class="badge badge-${d.status}">${statusIcon(d.status)} ${statusText(d.status)}</span><button class="btn-danger" onclick="deleteDoc(${d.id},'${esc(d.original_name)}')" style="border:none;cursor:pointer">删除</button></div></div>`).join('');
-    if(processing>0)setTimeout(loadDocs,5000);
+// ─── Toast ───────────────────────────────────────────────────────────
+let _tid = 0;
+function toast(msg, type = 'success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast animate-slide-up ${type}`;
+  const icon = type === 'error' ? '⚠' : '✓';
+  t.innerHTML = `<span style="color:${type==='error'?'var(--danger)':'var(--accent)'};font-size:15px">${icon}</span><span style="flex:1">${esc(msg)}</span><button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:2px 4px;line-height:1">×</button>`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3800);
 }
 
-function renderDashboardContent(){
-    const el=document.getElementById('kb-grid');if(!el)return;
-    if(kbs.length===0){el.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:80px 20px"><div style="width:80px;height:80px;background:var(--accent-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:36px">📚</div><h3 style="font-size:20px;font-weight:600;margin-bottom:10px">暂无知识库</h3><p style="font-size:15px;color:var(--muted);margin-bottom:24px">您还没有创建任何知识库，立即开始构建您的农业智库。</p><button class="btn btn-primary btn-lg" onclick="showCreateModal=true;renderCreateModal()">＋ 新建知识空间</button></div>`;return}
-    el.innerHTML=kbs.map(kb=>`<div class="glass-panel hover-card" onclick="openKBDetail(${kb.id})" style="padding:28px;display:flex;flex-direction:column;min-height:220px;border-radius:24px"><div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center"><div style="width:48px;height:48px;border-radius:16px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:20px;font-weight:700;font-family:Outfit">${kb.name.charAt(0).toUpperCase()}</div><div><h3 style="font-size:17px;font-weight:600;color:var(--ink)">${esc(kb.name)}</h3><div style="font-size:13px;color:var(--muted);margin-top:3px;font-weight:500">${esc(kb.domain||'通用农业')}</div></div></div><span class="badge badge-${kb.status}">✓ 就绪</span></div><div style="font-size:14px;color:var(--muted);flex:1;margin-bottom:16px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.6">${esc(kb.description||'暂无详细描述信息。')}</div><div style="border-top:1px solid var(--line);padding-top:16px;display:flex;align-items:center;justify-content:space-between"><div style="display:flex;gap:20px"><div style="display:flex;align-items:center;gap:6px;font-size:14px;color:var(--ink);font-weight:500">📁 ${kb.total_files} 个文件</div><div style="display:flex;align-items:center;gap:6px;font-size:14px;color:var(--accent);font-weight:500">✓ ${kb.completed_files} 已索引</div></div><span style="color:var(--muted)">→</span></div></div>`).join('');
+// ─── API ─────────────────────────────────────────────────────────────
+async function api(path, opts = {}) {
+  const h = { ...(opts.headers || {}) };
+  if (token) h['Authorization'] = `Bearer ${token}`;
+  if (!(opts.body instanceof FormData)) h['Content-Type'] = 'application/json';
+  const res = await fetch(`${API}${path}`, { ...opts, headers: h });
+  if (res.status === 401) { logout(); throw new Error('请重新登录'); }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || '请求失败');
+  return data;
 }
 
-function renderCreateModal(){
-    let m=document.getElementById('create-modal');
-    if(!showCreateModal){if(m)m.remove();return}
-    if(!m){m=document.createElement('div');m.id='create-modal';document.body.appendChild(m)}
-    m.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this){showCreateModal=false;renderCreateModal()}"><div class="modal-body animate-slide-up" style="max-width:520px"><div style="padding:36px 40px 0"><h2 style="font-size:24px;font-weight:700;margin-bottom:8px">创建农业知识空间</h2><p style="font-size:14px;color:var(--muted);margin-bottom:28px">构建结构化农业资产，自动生成专属的 MCP 检索引擎</p></div><form onsubmit="createKB(event)" style="padding:0 40px 32px"><div style="margin-bottom:20px"><label class="form-label">领域</label><input name="kb_domain" class="form-input" value="农业" placeholder="例如：果树、设施蔬菜、养殖"></div><div style="margin-bottom:20px"><label class="form-label">知识空间名称</label><input name="kb_name" class="form-input" required placeholder="例如：红富士病虫害防控指南" autofocus></div><div style="margin-bottom:28px"><label class="form-label">空间简介 <span class="opt">(选填)</span></label><textarea name="kb_desc" class="form-input" placeholder="简单描述该知识库的作用，将作为 LLM 识别和调用此工具的 Context 依据"></textarea></div><div style="display:flex;gap:12px"><button type="button" class="btn btn-secondary" style="flex:1" onclick="showCreateModal=false;renderCreateModal()">取消</button><button type="submit" class="btn btn-primary" style="flex:1">创建知识空间</button></div></form></div></div>`;
+// ─── Auth ─────────────────────────────────────────────────────────────
+function saveAuth(d) { token = d.token; localStorage.setItem('yz_token', token); currentUser = d; page = 'dashboard'; render(); }
+function logout() { token = null; currentUser = null; localStorage.removeItem('yz_token'); page = 'dashboard'; render(); }
+async function handleRegister(e) { e.preventDefault(); const b = e.target.querySelector('[type=submit]'); b.disabled = true; try { const d = await api('/auth/register', { method: 'POST', body: JSON.stringify({ username: e.target.username.value, password: e.target.password.value, display_name: e.target.display_name.value || null }) }); toast('注册成功，欢迎使用 Zeelin 农业'); saveAuth(d); } catch (err) { toast(err.message, 'error'); } finally { b.disabled = false; } }
+async function handleLogin(e) { e.preventDefault(); const b = e.target.querySelector('[type=submit]'); b.disabled = true; try { const d = await api('/auth/login', { method: 'POST', body: JSON.stringify({ username: e.target.username.value, password: e.target.password.value }) }); toast('登录成功'); saveAuth(d); } catch (err) { toast(err.message, 'error'); } finally { b.disabled = false; } }
+
+// ─── KBs ─────────────────────────────────────────────────────────────
+async function loadKBs() { try { kbs = await api('/knowledge-bases'); renderDashboardContent(); } catch (e) { console.error(e); } }
+async function createKB(e) {
+  e.preventDefault();
+  const b = e.target.querySelector('[type=submit]'); b.disabled = true;
+  try {
+    const d = await api('/knowledge-bases', { method: 'POST', body: JSON.stringify({ name: e.target.kb_name.value, description: e.target.kb_desc.value || null, domain: e.target.kb_domain.value || '农业' }) });
+    toast(`知识库「${d.name}」创建成功`); showCreateModal = false; renderCreateModal(); openKBDetail(d.id);
+  } catch (err) { toast(err.message, 'error'); } finally { b.disabled = false; }
+}
+async function deleteKB(id, name) {
+  try { await api(`/knowledge-bases/${id}`, { method: 'DELETE' }); toast(`知识库「${name}」已删除`); confirmKBDelete = false; page = 'dashboard'; render(); }
+  catch (err) { toast(err.message, 'error'); confirmKBDelete = false; renderKBHeader(); }
 }
 
-function render(){
-    const root=document.getElementById('app');
-    if(!token){
-        // Auth
-        root.innerHTML=authMode==='login'?`
-        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px"><div class="animate-slide-up" style="width:100%;max-width:440px">
-            <div style="text-align:center;margin-bottom:40px"><div style="font-size:36px;margin-bottom:12px">🌾</div><h1 style="font-size:28px;font-weight:800;color:var(--ink)">耘智 <span style="font-weight:400;opacity:.8;font-family:Outfit">YunZhi</span></h1><p style="color:var(--muted);font-size:14px;margin-top:8px">农业专属大模型知识中枢</p></div>
-            <div class="glass-panel" style="padding:36px 40px;border-radius:32px"><h2 style="font-size:20px;font-weight:700;margin-bottom:24px;text-align:center">登录您的账户</h2><form onsubmit="handleLogin(event)"><div style="margin-bottom:20px"><label class="form-label">用户名</label><input name="username" class="form-input" required></div><div style="margin-bottom:28px"><label class="form-label">密码</label><input name="password" type="password" class="form-input" required></div><button type="submit" class="btn btn-primary btn-lg" style="width:100%">登录</button></form><div style="text-align:center;margin-top:20px;font-size:13px;color:var(--muted)">还没有账户？<a href="#" onclick="authMode='register';render();return false" style="color:var(--accent);text-decoration:none;font-weight:600">立即注册</a></div></div>
-        </div></div>`:`
-        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px"><div class="animate-slide-up" style="width:100%;max-width:440px">
-            <div style="text-align:center;margin-bottom:40px"><div style="font-size:36px;margin-bottom:12px">🌾</div><h1 style="font-size:28px;font-weight:800;color:var(--ink)">耘智 <span style="font-weight:400;opacity:.8;font-family:Outfit">YunZhi</span></h1><p style="color:var(--muted);font-size:14px;margin-top:8px">创建账户，获取专属知识库</p></div>
-            <div class="glass-panel" style="padding:36px 40px;border-radius:32px"><h2 style="font-size:20px;font-weight:700;margin-bottom:24px;text-align:center">注册新账户</h2><form onsubmit="handleRegister(event)"><div style="margin-bottom:20px"><label class="form-label">用户名</label><input name="username" class="form-input" required minlength="3"></div><div style="margin-bottom:20px"><label class="form-label">密码</label><input name="password" type="password" class="form-input" required minlength="6"></div><div style="margin-bottom:28px"><label class="form-label">显示名称 <span class="opt">(选填)</span></label><input name="display_name" class="form-input" placeholder="例如：张农技师"></div><button type="submit" class="btn btn-primary btn-lg" style="width:100%">注册</button></form><div style="text-align:center;margin-top:20px;font-size:13px;color:var(--muted)">已有账户？<a href="#" onclick="authMode='login';render();return false" style="color:var(--accent);text-decoration:none;font-weight:600">返回登录</a></div></div>
-        </div></div>`;
-        return;
-    }
+// ─── KB Detail ────────────────────────────────────────────────────────
+async function openKBDetail(id) {
+  try { currentKB = await api(`/knowledge-bases/${id}`); page = 'detail'; confirmKBDelete = false; render(); }
+  catch (err) { toast(err.message, 'error'); }
+}
+async function loadDocs() {
+  if (!currentKB) return;
+  try { docs = await api(`/knowledge-bases/${currentKB.id}/documents`); renderDocList(); }
+  catch (e) { console.error(e); }
+}
 
-    const name=currentUser?.display_name||currentUser?.username||'';
+async function uploadFile(file) {
+  const ext = '.' + file.name.split('.').pop().toLowerCase();
+  if (!ALLOWED_EXT.has(ext)) { toast(`不支持的文件类型: ${ext}`, 'error'); return; }
+  const form = new FormData(); form.append('file', file);
+  try {
+    const doc = await api(`/knowledge-bases/${currentKB.id}/documents`, { method: 'POST', body: form });
+    toast(`${file.name} 上传成功，正在排队处理…`);
+    docs.unshift(doc); renderDocList();
+    startSSE(doc.id);
+  } catch (err) { toast('上传失败: ' + err.message, 'error'); }
+}
 
-    if(page==='detail'&&currentKB){
-        // ─── KB Detail Page ───
-        root.innerHTML=`
-        <header class="header"><div style="display:flex;align-items:center;gap:14px"><div style="font-size:28px">🌾</div><div><h1 style="font-size:19px;font-weight:800;margin:0;color:var(--ink)">耘智 <span style="font-weight:400;opacity:.8;font-size:18px;font-family:Outfit">YunZhi</span></h1><div style="font-size:12px;color:var(--muted);font-weight:500;margin-top:2px">农业专属大模型知识中枢</div></div></div><div style="display:flex;align-items:center;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);font-weight:600;background:var(--accent-light);padding:6px 14px;border-radius:20px">👤 ${esc(name)}</div><button class="btn btn-secondary btn-sm" onclick="logout()" style="padding:8px 12px;border-radius:10px">退出</button></div></header>
-        <main class="container" style="padding:32px">
-            <div class="animate-fade-in">
-                <!-- Breadcrumb -->
-                <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
-                    <a href="#" onclick="page='dashboard';render();return false" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-size:13px;font-weight:600;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:6px 14px;transition:.2s" onmouseover="this.style.background='var(--accent-light)';this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.background='var(--bg)';this.style.borderColor='var(--line)';this.style.color='var(--ink)'">← 返回工作台</a>
-                    <span style="font-size:13px;color:var(--muted)">工作台 / <span style="color:var(--ink);font-weight:500">${esc(currentKB.name)}</span></span>
-                </div>
+function startSSE(docId) {
+  if (sseMap[docId]) sseMap[docId].close();
+  const es = new EventSource(`${API}/knowledge-bases/${currentKB.id}/documents/${docId}/status`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  // Note: EventSource doesn't support custom headers natively; use URL param fallback
+  // We'll patch this with fetch-based SSE if needed, but try native first
+  es.onmessage = (e) => {
+    const ev = JSON.parse(e.data);
+    const doc = docs.find(d => d.id === docId);
+    if (doc) { doc.status = ev.status; if (ev.error) doc.error_message = ev.error; renderDocList(); }
+    if (ev.status === 'completed' || ev.status === 'failed') { es.close(); delete sseMap[docId]; }
+  };
+  es.onerror = () => { es.close(); delete sseMap[docId]; };
+  sseMap[docId] = es;
+}
 
-                <!-- KB Header -->
-                <div class="glass-panel" style="padding:32px 40px;border-radius:24px;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px">
-                    <div><div style="display:flex;align-items:center;gap:16px;margin-bottom:12px"><div style="width:56px;height:56px;border-radius:16px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:24px">📚</div><div><div style="display:flex;align-items:center;gap:12px;margin-bottom:4px"><h1 style="font-size:26px;font-weight:700;margin:0">${esc(currentKB.name)}</h1><span class="badge badge-active">✓ 就绪</span><span style="font-size:13px;padding:4px 10px;border-radius:8px;background:var(--bg);color:var(--muted);font-weight:500">${esc(currentKB.domain)}</span></div><div style="font-size:14px;color:var(--muted)">${esc(currentKB.description||'暂无简介')}</div></div></div>
-                    <div style="display:flex;align-items:center;gap:24px;font-size:14px;color:var(--muted);margin-left:72px;margin-top:16px"><div style="display:flex;flex-direction:column"><span style="font-size:12px">文件总量</span><span style="font-size:20px;font-weight:600;color:var(--ink);font-family:Outfit">${currentKB.total_files}</span></div><div style="width:1px;height:30px;background:var(--line)"></div><div style="display:flex;flex-direction:column"><span style="font-size:12px">索引完成</span><span style="font-size:20px;font-weight:600;color:var(--accent);font-family:Outfit">${currentKB.completed_files}</span></div></div></div>
-                    <button class="btn btn-secondary" onclick="deleteKB(${currentKB.id},'${esc(currentKB.name)}')" style="color:var(--danger);border-color:var(--danger-light)">删除此知识库</button>
-                </div>
+async function deleteDoc(id, name) {
+  try { await api(`/knowledge-bases/${currentKB.id}/documents/${id}`, { method: 'DELETE' }); toast('文档已删除'); docs = docs.filter(d => d.id !== id); renderDocList(); }
+  catch (err) { toast(err.message, 'error'); }
+}
 
-                <!-- Two Column -->
-                <div style="display:grid;grid-template-columns:minmax(0,6fr) minmax(0,4fr);gap:24px">
-                    <div>
-                        <h2 style="font-size:18px;font-weight:600;margin-bottom:16px">数据源与文件管理</h2>
-                        <div class="glass-panel" style="padding:28px;border-radius:24px">
-                            <div class="upload-zone" id="upload-zone"><input type="file" id="file-input" multiple accept="${Array.from(ALLOWED_EXT).join(',')}"><div style="width:64px;height:64px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);margin-bottom:16px;font-size:28px">📤</div><div style="font-size:16px;font-weight:600;color:var(--ink);margin-bottom:8px">点击或拖拽上传农业原始资料</div><div style="font-size:13px;color:var(--muted)">支持 PDF、Word、Markdown、TXT、Excel、CSV</div></div>
-                            <div id="doc-stats" style="display:flex;align-items:center;gap:24px;padding:20px 0;margin-top:20px;border-top:1px solid var(--line)"></div>
-                            <div id="doc-list" style="margin-top:8px"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <h2 style="font-size:18px;font-weight:600;margin-bottom:16px">检索调试沙盒</h2>
-                        <div class="glass-panel" style="padding:28px;border-radius:24px">
-                            <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">验证知识库的检索效果，输入自然语言问题进行测试。</p>
-                            <form onsubmit="handleQuery(event)"><input type="text" class="form-input" placeholder="输入您的农业问题..." required style="margin-bottom:12px"><button type="submit" class="btn btn-primary" style="width:100%">🔍 检索知识库</button></form>
-                            <div id="search-result" class="search-result" style="display:none"></div>
-                        </div>
-                    </div>
-                </div>
+async function handleQuery(e) {
+  e.preventDefault();
+  const input = e.target.querySelector('input');
+  const btn = e.target.querySelector('[type=submit]');
+  if (!input.value.trim()) return;
+  btn.disabled = true;
+  const el = document.getElementById('search-result');
+  el.style.display = 'block';
+  el.innerHTML = '<div style="display:flex;align-items:center;gap:10px;color:var(--muted)"><div class="spinner spinner-lg"></div> 正在检索知识库…</div>';
+  try {
+    const d = await api(`/knowledge-bases/${currentKB.id}/query`, { method: 'POST', body: JSON.stringify({ query: input.value, mode: queryMode }) });
+    el.textContent = d.answer;
+  } catch (err) { el.innerHTML = `<span style="color:var(--danger)">查询失败: ${esc(err.message)}</span>`; }
+  finally { btn.disabled = false; }
+}
+
+// ─── Render: Doc list ─────────────────────────────────────────────────
+function renderDocList() {
+  const el = document.getElementById('doc-list'); if (!el) return;
+  const statsEl = document.getElementById('doc-stats');
+  const total = docs.length;
+  const completed = docs.filter(d => d.status === 'completed').length;
+  const inProgress = docs.filter(d => d.status === 'processing' || d.status === 'queued').length;
+  const failed = docs.filter(d => d.status === 'failed').length;
+  if (statsEl) {
+    statsEl.innerHTML = `
+      <div class="stat-item"><span class="stat-label">文件总量</span><span class="stat-value" style="color:var(--ink)">${total}</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><span class="stat-label">已索引</span><span class="stat-value" style="color:var(--accent)">${completed}</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><span class="stat-label">处理中</span><span class="stat-value" style="color:var(--warn)">${inProgress}</span></div>
+      ${failed > 0 ? `<div class="stat-divider"></div><div class="stat-item"><span class="stat-label">异常</span><span class="stat-value" style="color:var(--danger)">${failed}</span></div>` : ''}
+    `;
+  }
+  if (total === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:36px 0;font-size:14px">暂无文档，请上传您的农业知识文件</div>'; return;
+  }
+  el.innerHTML = docs.map(d => `
+    <div class="file-item status-${d.status}">
+      <div class="file-icon">${fileIcon(d.original_name)}</div>
+      <div style="flex:1;overflow:hidden">
+        <div style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.original_name)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${formatSize(d.file_size)} · ${formatDate(d.created_at)}</div>
+        ${d.status === 'failed' && d.error_message ? `<div style="font-size:11.5px;color:var(--danger);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(d.error_message)}">⚠ ${esc(d.error_message.slice(0, 80))}</div>` : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <span class="badge badge-${d.status}">
+          ${d.status === 'processing' || d.status === 'queued' ? '<span class="spinner" style="width:10px;height:10px;margin-right:2px"></span>' : ''}
+          ${statusText(d.status)}
+        </span>
+        <button class="btn btn-danger btn-sm" onclick="deleteDoc(${d.id},'${esc(d.original_name).replace(/'/g,"\\'")}')">删除</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Auto-start SSE for any processing/queued docs not yet tracked
+  docs.filter(d => d.status === 'processing' || d.status === 'queued').forEach(d => {
+    if (!sseMap[d.id]) startSSE(d.id);
+  });
+}
+
+// ─── Render: KB header (detail page) ─────────────────────────────────
+function renderKBHeader() {
+  const el = document.getElementById('kb-header-actions'); if (!el) return;
+  if (confirmKBDelete) {
+    el.innerHTML = `
+      <div class="confirm-inline animate-fade-in">
+        <span>确认删除？所有数据将永久清除</span>
+        <button class="btn btn-sm" style="background:var(--danger);color:#fff;padding:5px 14px" onclick="deleteKB(${currentKB.id},'${esc(currentKB.name).replace(/'/g,"\\'")}')">确认删除</button>
+        <button class="btn btn-ghost btn-sm" onclick="confirmKBDelete=false;renderKBHeader()">取消</button>
+      </div>`;
+  } else {
+    el.innerHTML = `<button class="btn btn-secondary btn-sm" style="color:var(--danger);border-color:rgba(217,120,120,.3)" onclick="confirmKBDelete=true;renderKBHeader()">删除知识库</button>`;
+  }
+}
+
+// ─── Render: Dashboard ────────────────────────────────────────────────
+function renderDashboardContent() {
+  const el = document.getElementById('kb-grid'); if (!el) return;
+  const addBtn = document.getElementById('add-kb-btn');
+  if (addBtn) addBtn.style.display = kbs.length > 0 ? '' : 'none';
+  if (kbs.length === 0) {
+    el.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:72px 20px">
+        <div style="width:72px;height:72px;background:var(--accent-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px">📚</div>
+        <h3 style="font-size:19px;font-weight:600;margin-bottom:10px">暂无知识库</h3>
+        <p style="font-size:14px;color:var(--muted);margin-bottom:24px;max-width:360px;margin-left:auto;margin-right:auto">您还没有创建任何知识库，立即开始构建您的农业智库。</p>
+        <button class="btn btn-primary btn-lg" onclick="showCreateModal=true;renderCreateModal()">＋ 新建知识空间</button>
+      </div>`;
+    return;
+  }
+  el.innerHTML = kbs.map(kb => {
+    const hasActive = kb.total_files > kb.completed_files && kb.total_files > 0;
+    return `
+    <div class="glass-panel hover-card" onclick="openKBDetail(${kb.id})" style="padding:24px;display:flex;flex-direction:column;min-height:200px;border-radius:24px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:44px;height:44px;border-radius:14px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:17px;font-weight:700;font-family:Outfit;flex-shrink:0">${kb.name.charAt(0).toUpperCase()}</div>
+          <div>
+            <h3 style="font-size:16px;font-weight:600;line-height:1.3">${esc(kb.name)}</h3>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;font-weight:500">${esc(kb.domain || '通用农业')}</div>
+          </div>
+        </div>
+        <span class="badge ${hasActive ? 'badge-processing' : 'badge-active'}">${hasActive ? '构建中' : '✓ 就绪'}</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--muted);flex:1;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.65">${esc(kb.description || '暂无简介')}</div>
+      <div style="border-top:1px solid var(--line);padding-top:13px;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;gap:16px">
+          <span style="font-size:13px;color:var(--muted)">📁 ${kb.total_files} 个文件</span>
+          <span style="font-size:13px;color:var(--accent);font-weight:500">✓ ${kb.completed_files} 已索引</span>
+        </div>
+        <span style="color:var(--muted);font-size:16px">›</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Render: Create Modal ─────────────────────────────────────────────
+function renderCreateModal() {
+  let m = document.getElementById('create-modal');
+  if (!showCreateModal) { if (m) m.remove(); return; }
+  if (!m) { m = document.createElement('div'); m.id = 'create-modal'; document.body.appendChild(m); }
+  m.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this){showCreateModal=false;renderCreateModal()}">
+      <div class="modal-body animate-slide-up" style="max-width:500px">
+        <div style="padding:32px 36px">
+          <h2 style="font-size:22px;font-weight:700;margin-bottom:6px">创建知识空间</h2>
+          <p style="font-size:13.5px;color:var(--muted);margin-bottom:26px">构建结构化农业资产，自动生成专属 MCP 检索引擎</p>
+          <form onsubmit="createKB(event)">
+            <div class="form-group"><label class="form-label">所属领域</label><input name="kb_domain" class="form-input" value="农业" placeholder="例如：果树、设施蔬菜"></div>
+            <div class="form-group"><label class="form-label">知识空间名称</label><input name="kb_name" class="form-input" required placeholder="例如：红富士病虫害防控" autofocus></div>
+            <div class="form-group"><label class="form-label">空间简介 <span class="opt">(选填)</span></label><textarea name="kb_desc" class="form-input" placeholder="描述该知识库的内容和用途，将作为 MCP 工具的 Context 依据"></textarea></div>
+            <div style="display:flex;gap:10px;margin-top:4px">
+              <button type="button" class="btn btn-secondary" style="flex:1" onclick="showCreateModal=false;renderCreateModal()">取消</button>
+              <button type="submit" class="btn btn-primary" style="flex:1">创建知识空间</button>
             </div>
-        </main>`;
-        setupUpload();loadDocs();
-    } else {
-        // ─── Dashboard ───
-        root.innerHTML=`
-        <header class="header"><div style="display:flex;align-items:center;gap:14px"><div style="font-size:28px">🌾</div><div><h1 style="font-size:19px;font-weight:800;margin:0;color:var(--ink)">耘智 <span style="font-weight:400;opacity:.8;font-size:18px;font-family:Outfit">YunZhi</span></h1><div style="font-size:12px;color:var(--muted);font-weight:500;margin-top:2px">农业专属大模型知识中枢</div></div></div><div style="display:flex;align-items:center;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);font-weight:600;background:var(--accent-light);padding:6px 14px;border-radius:20px">👤 ${esc(name)}</div><button class="btn btn-secondary btn-sm" onclick="logout()" style="padding:8px 12px;border-radius:10px">退出</button></div></header>
-        <main class="container" style="padding:32px">
-            <div class="animate-fade-in" style="padding:24px 0 60px">
-                <!-- Hero -->
-                <div class="glass-panel animate-slide-up" style="padding:56px 60px;margin-bottom:48px;border-radius:32px;background:#eef2e6;border:none;position:relative;overflow:hidden">
-                    <svg style="position:absolute;top:0;right:0;width:100%;height:100%;z-index:0;opacity:.9" viewBox="0 0 1000 400" preserveAspectRatio="none"><path d="M600,0 C750,150 1000,50 1000,200 L1000,0 Z" fill="#dce6d2"/><path d="M700,400 C850,250 1000,400 1000,400 Z" fill="#e2ead8"/><path d="M-50,400 C150,250 300,400 400,400 L-50,400 Z" fill="#dce6d2"/></svg>
-                    <div style="position:relative;z-index:1;max-width:640px">
-                        <div style="display:inline-flex;align-items:center;gap:8px;color:var(--accent);font-size:14px;font-weight:700;margin-bottom:16px">🌿 耘智 YunZhi</div>
-                        <h1 style="font-size:40px;font-weight:700;margin-bottom:20px;line-height:1.15">构建您的农业<br>专属智慧大脑</h1>
-                        <p style="color:var(--muted);font-size:16px;margin-bottom:36px;line-height:1.7">将离散的农技资料汇聚一处，自动提取结构化数据，生成专有的 MCP 索引源。<br>让大模型等智能工具时刻汲取最准确的农业私有养分。</p>
-                        <button class="btn btn-primary btn-lg" onclick="showCreateModal=true;renderCreateModal()">＋ 新建知识空间</button>
-                    </div>
-                </div>
-                <!-- KB List -->
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px"><div><h2 style="font-size:22px;font-weight:700">知识库项目</h2><div style="font-size:14px;color:var(--muted);margin-top:4px">管理您的独立隔离知识库上下文</div></div></div>
-                <div class="kb-grid" id="kb-grid"></div>
-            </div>
-        </main>`;
-        loadKBs();
-    }
+          </form>
+        </div>
+      </div>
+    </div>`;
 }
 
-function setupUpload(){const z=document.getElementById('upload-zone'),i=document.getElementById('file-input');if(!z||!i)return;i.addEventListener('change',e=>{Array.from(e.target.files).forEach(uploadFile);e.target.value=''});z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('dragover')});z.addEventListener('dragleave',()=>z.classList.remove('dragover'));z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('dragover');Array.from(e.dataTransfer.files).forEach(uploadFile)})}
+// ─── Render: MCP Config panel ─────────────────────────────────────────
+let _mcpTab = 'json'; // 'json' | 'fields'
 
-// ─── Utils ───
-function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
-function formatSize(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB'}
-function formatDate(s){try{return new Date(s).toLocaleString('zh-CN')}catch{return s}}
-function statusText(s){return{completed:'索引完成',processing:'构建中',failed:'异常',pending:'等待中'}[s]||s}
-function statusIcon(s){return{completed:'✓',processing:'⟳',failed:'⚠',pending:'◷'}[s]||''}
+function renderMCPConfig() {
+  if (!currentKB) return '';
+  return `
+    <div class="glass-panel" style="padding:22px 26px;border-radius:20px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">🔌</span>
+          <div>
+            <div style="font-size:15px;font-weight:700">MCP 接入配置</div>
+            <div style="font-size:12.5px;color:var(--muted);margin-top:1px">将此知识库接入 Claude Desktop 或任意支持 MCP 的客户端</div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab ${_mcpTab==='json'?'active':''}" onclick="_mcpTab='json';refreshMCPPanel()">JSON 配置</button>
+          <button class="tab ${_mcpTab==='fields'?'active':''}" onclick="_mcpTab='fields';refreshMCPPanel()">字段配置</button>
+        </div>
+      </div>
+      <div id="mcp-panel-body"></div>
+    </div>`;
+}
 
-// ─── Init ───
-(async()=>{if(token){try{currentUser=await api('/user/me')}catch{token=null;localStorage.removeItem('yz_token')}}render()})();
+function refreshMCPPanel() {
+  const el = document.getElementById('mcp-panel-body');
+  if (!el) return;
+  if (_mcpTab === 'json') {
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div>
+          <label style="font-size:11.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px">CONFIG 文件路径</label>
+          <input id="mcp-config-path" class="form-input" style="font-size:13px;padding:8px 12px;border-radius:10px;font-family:'SF Mono',Monaco,monospace"
+            placeholder="/path/to/config.yaml" oninput="updateMCPJson()">
+        </div>
+        <div>
+          <label style="font-size:11.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px">服务名称 <span style="font-weight:400">(可自定义)</span></label>
+          <input id="mcp-server-name" class="form-input" style="font-size:13px;padding:8px 12px;border-radius:10px"
+            value="knowledge-mcp" oninput="updateMCPJson()">
+        </div>
+      </div>
+      <div style="font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">粘贴到 claude_desktop_config.json</div>
+      <div class="code-block" id="mcp-config-code" style="padding-right:72px;min-height:100px"></div>`;
+    updateMCPJson();
+  } else {
+    const args = `knowledge-mcp mcp --config /path/to/config.yaml`;
+    const fields = [
+      { label: 'Name',      value: 'knowledge-mcp',          note: '服务名称，可自定义' },
+      { label: 'Command',   value: 'uvx',                    note: '启动命令' },
+      { label: 'Arguments', value: args,                     note: '完整参数，替换 config 路径后使用' },
+      { label: 'KB Name',   value: currentKB.kb_dir_name,    note: '查询时传给 kb 参数的值' },
+    ];
+    el.innerHTML = `
+      <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px">适用于 Cursor、Windsurf 等有图形界面的 MCP 客户端，逐字段填入即可。</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${fields.map(f => `
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg);border:1px solid var(--line);border-radius:12px">
+            <div style="width:80px;flex-shrink:0">
+              <div style="font-size:12px;font-weight:700;color:var(--ink)">${f.label}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:1px">${f.note}</div>
+            </div>
+            <code style="flex:1;font-size:12.5px;font-family:'SF Mono',Monaco,monospace;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(f.value)}">${esc(f.value)}</code>
+            <button class="copy-btn" style="position:static;flex-shrink:0" onclick="copyText('${esc(f.value).replace(/'/g,"\\'")}',this)">复制</button>
+          </div>`).join('')}
+      </div>`;
+  }
+}
+
+function updateMCPJson() {
+  const pathEl = document.getElementById('mcp-config-path');
+  const nameEl = document.getElementById('mcp-server-name');
+  const codeEl = document.getElementById('mcp-config-code');
+  if (!codeEl) return;
+  const configPath = pathEl?.value.trim() || '/path/to/config.yaml';
+  const serverName = nameEl?.value.trim() || 'knowledge-mcp';
+  const cfg = JSON.stringify({ mcpServers: { [serverName]: { command: 'uvx', args: ['knowledge-mcp', 'mcp', '--config', configPath] } } }, null, 2);
+  codeEl.innerHTML = escCode(cfg) + '<button class="copy-btn" onclick="copyCode(\'mcp-config-code\',this)">复制</button>';
+}
+
+function copyCode(elId, btn) {
+  const el = document.getElementById(elId);
+  const text = el.innerText.replace(/复制$/, '').trim();
+  navigator.clipboard.writeText(text).then(() => { _flashCopy(btn); });
+}
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => { _flashCopy(btn); });
+}
+function _flashCopy(btn) {
+  btn.textContent = '已复制 ✓'; btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = '复制'; btn.classList.remove('copied'); }, 2000);
+}
+
+// ─── Main Render ──────────────────────────────────────────────────────
+function render() {
+  const root = document.getElementById('app');
+  if (!token) { renderAuth(root); return; }
+  if (page === 'detail' && currentKB) { renderDetail(root); }
+  else { renderDashboard(root); }
+}
+
+function renderAuth(root) {
+  const isLogin = authMode === 'login';
+  root.innerHTML = `
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(160deg,#f5f8f2 0%,var(--bg) 60%)">
+      <div class="animate-slide-up" style="width:100%;max-width:420px">
+        <div style="text-align:center;margin-bottom:32px">
+          <div style="font-size:40px;margin-bottom:10px">🌾</div>
+          <h1 style="font-size:26px;font-weight:800;color:var(--ink)">Zeelin <span style="font-weight:400;opacity:.75;font-family:Outfit">农业</span></h1>
+          <p style="color:var(--muted);font-size:13.5px;margin-top:6px">农业专属大模型知识中枢</p>
+        </div>
+        <div class="glass-panel" style="padding:32px 36px;border-radius:28px">
+          <h2 style="font-size:18px;font-weight:700;margin-bottom:22px;text-align:center">${isLogin ? '登录您的账户' : '注册新账户'}</h2>
+          <form onsubmit="${isLogin ? 'handleLogin' : 'handleRegister'}(event)">
+            <div class="form-group"><label class="form-label">用户名</label><input name="username" class="form-input" required ${!isLogin ? 'minlength="3"' : ''}></div>
+            <div class="form-group"><label class="form-label">密码</label><input name="password" type="password" class="form-input" required minlength="6"></div>
+            ${!isLogin ? `<div class="form-group"><label class="form-label">显示名称 <span class="opt">(选填)</span></label><input name="display_name" class="form-input" placeholder="例如：张农技师"></div>` : ''}
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:4px">${isLogin ? '登录' : '注册'}</button>
+          </form>
+          <div style="text-align:center;margin-top:18px;font-size:13px;color:var(--muted)">
+            ${isLogin ? '还没有账户？' : '已有账户？'}
+            <a href="#" onclick="authMode='${isLogin ? 'register' : 'login'}';render();return false" style="color:var(--accent);text-decoration:none;font-weight:600">${isLogin ? '立即注册' : '返回登录'}</a>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderDashboard(root) {
+  const name = currentUser?.display_name || currentUser?.username || '';
+  root.innerHTML = `
+    <header class="header">
+      <div class="brand"><div class="brand-icon">🌾</div><div><div class="brand-name">Zeelin 农业</div><div class="brand-sub">农业专属大模型知识中枢</div></div></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:13px;font-weight:600;background:var(--accent-light);color:var(--accent);padding:6px 14px;border-radius:20px">👤 ${esc(name)}</div>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">退出</button>
+      </div>
+    </header>
+    <main class="container" style="padding:28px 32px 64px">
+      <div class="animate-fade-in">
+        <!-- Hero -->
+        <div style="background:linear-gradient(135deg,#e8f0e2 0%,#f0f5ec 60%,#f5f7f1 100%);border-radius:24px;padding:44px 52px;margin-bottom:36px;position:relative;overflow:hidden">
+          <svg style="position:absolute;top:0;right:0;width:45%;height:100%;opacity:.6" viewBox="0 0 400 300" preserveAspectRatio="xMaxYMid slice"><path d="M200,0 C300,80 400,40 400,150 L400,0 Z" fill="#d4e3cc"/><path d="M300,300 C360,220 400,280 400,300 Z" fill="#dce8d4"/></svg>
+          <div style="position:relative;z-index:1;max-width:560px">
+            <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:14px">🌿 Zeelin 农业</div>
+            <h1 style="font-size:34px;font-weight:700;margin-bottom:16px;line-height:1.2">构建您的农业<br>专属智慧大脑</h1>
+            <p style="color:var(--muted);font-size:15px;margin-bottom:30px;line-height:1.75">将离散的农技资料汇聚一处，自动提取结构化数据，<br>生成专有的 MCP 索引源，让大模型时刻汲取准确的私有知识。</p>
+            <button class="btn btn-primary btn-lg" onclick="showCreateModal=true;renderCreateModal()">＋ 新建知识空间</button>
+          </div>
+        </div>
+        <!-- Section header -->
+        <div class="section-header">
+          <div><div class="section-title">知识库项目</div><div style="font-size:13px;color:var(--muted);margin-top:3px">管理您的独立隔离知识库</div></div>
+          <button id="add-kb-btn" class="btn btn-primary btn-sm" onclick="showCreateModal=true;renderCreateModal()" style="display:none">＋ 新建</button>
+        </div>
+        <div class="kb-grid" id="kb-grid"></div>
+      </div>
+    </main>`;
+  loadKBs();
+}
+
+function renderDetail(root) {
+  const name = currentUser?.display_name || currentUser?.username || '';
+  root.innerHTML = `
+    <header class="header">
+      <div class="brand"><div class="brand-icon">🌾</div><div><div class="brand-name">Zeelin 农业</div><div class="brand-sub">农业专属大模型知识中枢</div></div></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:13px;font-weight:600;background:var(--accent-light);color:var(--accent);padding:6px 14px;border-radius:20px">👤 ${esc(name)}</div>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">退出</button>
+      </div>
+    </header>
+    <main class="container" style="padding:24px 32px 64px">
+      <div class="animate-fade-in">
+        <!-- Breadcrumb -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+          <button class="btn btn-secondary btn-sm" onclick="page='dashboard';render()">← 返回工作台</button>
+          <span style="font-size:13px;color:var(--muted)">工作台 / <span style="color:var(--ink);font-weight:500">${esc(currentKB.name)}</span></span>
+        </div>
+
+        <!-- KB Header -->
+        <div class="glass-panel" style="padding:24px 28px;margin-bottom:20px;border-radius:20px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+            <div style="display:flex;gap:16px;align-items:flex-start;flex:1;min-width:0">
+              <div style="width:52px;height:52px;flex-shrink:0;border-radius:16px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:22px">📚</div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+                  <h1 style="font-size:22px;font-weight:700;margin:0">${esc(currentKB.name)}</h1>
+                  <span class="badge badge-active">✓ 就绪</span>
+                  <span style="font-size:12px;padding:3px 10px;border-radius:8px;background:var(--bg);color:var(--muted);font-weight:500;border:1px solid var(--line)">${esc(currentKB.domain)}</span>
+                </div>
+                <div style="font-size:13.5px;color:var(--muted)">${esc(currentKB.description || '暂无简介')}</div>
+              </div>
+            </div>
+            <div id="kb-header-actions" style="flex-shrink:0"></div>
+          </div>
+          <div class="stat-row" id="doc-stats"></div>
+        </div>
+
+        <!-- MCP Config -->
+        ${renderMCPConfig()}
+
+        <!-- Two Column -->
+        <div style="display:grid;grid-template-columns:minmax(0,58fr) minmax(0,42fr);gap:20px;align-items:start">
+          <!-- Left: Files -->
+          <div>
+            <div class="section-header"><div class="section-title">数据源管理</div></div>
+            <div class="glass-panel" style="padding:24px;border-radius:20px">
+              <div class="upload-zone" id="upload-zone">
+                <input type="file" id="file-input" multiple accept="${Array.from(ALLOWED_EXT).join(',')}">
+                <div style="width:52px;height:52px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);margin-bottom:14px;font-size:24px">📤</div>
+                <div style="font-size:15px;font-weight:600;margin-bottom:6px">点击或拖拽上传文件</div>
+                <div style="font-size:12.5px;color:var(--muted)">支持 PDF、Word、Markdown、TXT、Excel、CSV 等</div>
+              </div>
+              <div id="doc-list" style="margin-top:16px"></div>
+            </div>
+          </div>
+
+          <!-- Right: Search -->
+          <div>
+            <div class="section-header"><div class="section-title">检索调试</div></div>
+            <div class="glass-panel" style="padding:24px;border-radius:20px">
+              <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.65">验证知识库检索效果，输入自然语言问题进行测试。</p>
+              <!-- Mode selector -->
+              <div style="margin-bottom:12px">
+                <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px">检索模式</div>
+                <div class="tabs" id="mode-tabs">
+                  ${['hybrid','local','global','mix','naive'].map(m => `<button class="tab ${m === queryMode ? 'active' : ''}" onclick="setMode('${m}')">${modeName(m)}</button>`).join('')}
+                </div>
+              </div>
+              <form onsubmit="handleQuery(event)">
+                <input type="text" class="form-input" placeholder="输入您的农业问题…" required style="margin-bottom:10px">
+                <button type="submit" class="btn btn-primary" style="width:100%">🔍 检索</button>
+              </form>
+              <div id="search-result" class="search-result" style="display:none"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>`;
+
+  renderKBHeader();
+  refreshMCPPanel();
+  setupUpload();
+  loadDocs();
+}
+
+function setMode(m) {
+  queryMode = m;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.textContent === modeName(m)));
+}
+
+function setupUpload() {
+  const z = document.getElementById('upload-zone'), i = document.getElementById('file-input');
+  if (!z || !i) return;
+  i.addEventListener('change', e => { Array.from(e.target.files).forEach(uploadFile); e.target.value = ''; });
+  z.addEventListener('dragover', e => { e.preventDefault(); z.classList.add('dragover'); });
+  z.addEventListener('dragleave', () => z.classList.remove('dragover'));
+  z.addEventListener('drop', e => { e.preventDefault(); z.classList.remove('dragover'); Array.from(e.dataTransfer.files).forEach(uploadFile); });
+}
+
+// ─── Utils ────────────────────────────────────────────────────────────
+function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function escCode(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function formatSize(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(1) + ' MB'; }
+function formatDate(s) { try { return new Date(s).toLocaleString('zh-CN', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}); } catch { return s; } }
+function statusText(s) { return { completed:'索引完成', processing:'构建中', queued:'排队中', failed:'处理失败', pending:'等待中' }[s] || s; }
+function fileIcon(name) {
+  const ext = (name || '').split('.').pop().toLowerCase();
+  return { pdf:'📑', doc:'📝', docx:'📝', ppt:'📊', pptx:'📊', xls:'📈', xlsx:'📈', md:'📄', txt:'📄', csv:'📋', json:'🗂' }[ext] || '📄';
+}
+function modeName(m) { return { hybrid:'混合', local:'局部', global:'全局', mix:'融合', naive:'基础' }[m] || m; }
+
+// ─── Init ─────────────────────────────────────────────────────────────
+(async () => {
+  if (token) { try { currentUser = await api('/user/me'); } catch { token = null; localStorage.removeItem('yz_token'); } }
+  render();
+})();
 </script>
 </body>
 </html>

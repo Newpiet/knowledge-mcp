@@ -1,10 +1,48 @@
 version: "3.8"
 
 services:
-  knowledge-mcp:
+  knowledge-mcp-web:
     build: .
-    container_name: knowledge-mcp
+    container_name: knowledge-mcp-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8000}:8000"
     volumes:
-      - ~/kb:/app/kb   # edit this path to your host knowledge-base directory
-    working_dir: /app/kb
-    command: mcp   # default = run MCP server (override: shell, create mykb, list, etc.)
+      - kb_data:/app/kb
+    command: web --host 0.0.0.0 --port 8000
+    environment:
+      KB_BASE_DIR: /app/kb
+      CONFIG_PATH: /app/kb/config.yaml
+      JWT_SECRET: ${JWT_SECRET}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_API_BASE: ${OPENAI_API_BASE:-}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-*}
+      MAX_CONCURRENT_INGESTIONS: ${MAX_CONCURRENT_INGESTIONS:-3}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: ${MEM_LIMIT:-4g}
+
+  knowledge-mcp-mcp:
+    build: .
+    container_name: knowledge-mcp-mcp
+    restart: unless-stopped
+    volumes:
+      - kb_data:/app/kb
+    command: mcp
+    environment:
+      KB_BASE_DIR: /app/kb
+      CONFIG_PATH: /app/kb/config.yaml
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_API_BASE: ${OPENAI_API_BASE:-}
+    profiles:
+      - mcp
+
+volumes:
+  kb_data:

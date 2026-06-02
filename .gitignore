@@ -4,7 +4,7 @@
 .benchmarks
 __pycache__
 kbs/
-dist/
+/dist/
 
 # Added by Claude Task Master
 # Logs

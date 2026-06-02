@@ -1,6 +1,7 @@
 """FastAPI server for knowledge-mcp web interface — multi-KB per user."""
 
 import asyncio
+import json
 import logging
 import os
 import re
@@ -9,23 +10,36 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, List
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Header
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from knowledge_mcp.api.database import init_db, get_connection
 from knowledge_mcp.api.auth import (
-    init_auth, hash_password, verify_password, create_token, decode_token
+    init_auth, hash_password, verify_password, needs_rehash, create_token, decode_token
 )
 
 logger = logging.getLogger(__name__)
 
 # --- Configuration ---
 BASE_DIR = os.environ.get("KB_BASE_DIR", "/app/kb")
+CONFIG_PATH = os.environ.get("CONFIG_PATH", str(Path(BASE_DIR) / "config.yaml"))
 JWT_SECRET = os.environ.get("JWT_SECRET", None)
+MAX_CONCURRENT_INGESTIONS = int(os.environ.get("MAX_CONCURRENT_INGESTIONS", "3"))
 UPLOAD_MAX_SIZE = 50 * 1024 * 1024  # 50MB
+
+# --- Shared managers (initialized at startup) ---
+_rag_manager = None
+_kb_manager = None
+_ingest_semaphore: asyncio.Semaphore | None = None
+
+# doc_id -> list of subscriber Queues (for SSE fan-out)
+_doc_subscribers: dict[int, list[asyncio.Queue]] = {}
 
 ALLOWED_EXTENSIONS = {
     ".pdf", ".txt", ".md", ".markdown", ".rst",
@@ -34,11 +48,16 @@ ALLOWED_EXTENSIONS = {
 }
 
 # --- App Setup ---
-app = FastAPI(title="耘智 YunZhi API", description="农业知识库 MCP 管理平台", version="0.2.0")
+limiter = Limiter(key_func=get_remote_address)
 
+app = FastAPI(title="耘智 YunZhi API", description="农业知识库 MCP 管理平台", version="0.2.0")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "*").split(",")]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,9 +70,50 @@ def _now():
 
 @app.on_event("startup")
 async def startup():
+    global _rag_manager, _kb_manager, _ingest_semaphore
+    _ingest_semaphore = asyncio.Semaphore(MAX_CONCURRENT_INGESTIONS)
     init_db(BASE_DIR)
     init_auth(JWT_SECRET)
+    _recover_interrupted_ingestions()
+    try:
+        from knowledge_mcp.config import Config
+        from knowledge_mcp.knowledgebases import KnowledgeBaseManager
+        from knowledge_mcp.rag import RagManager
+        Config.load(Path(CONFIG_PATH))
+        config = Config.get_instance()
+        _kb_manager = KnowledgeBaseManager(config)
+        _rag_manager = RagManager(config, _kb_manager)
+        logger.info(f"RagManager initialized from {CONFIG_PATH}")
+    except Exception as e:
+        logger.warning(f"RagManager not available (RAG features disabled): {e}")
     logger.info(f"API server started. Base dir: {BASE_DIR}")
+
+
+def _recover_interrupted_ingestions() -> None:
+    """Reset documents stuck in queued/processing after a server restart."""
+    conn = get_connection(BASE_DIR)
+    try:
+        result = conn.execute(
+            "UPDATE documents SET status='failed', error_message='服务重启，任务中断，请重新上传'"
+            " WHERE status IN ('queued', 'processing')"
+        )
+        if result.rowcount:
+            logger.warning(f"Recovered {result.rowcount} interrupted ingestion(s) on startup")
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _get_rag_manager():
+    if _rag_manager is None:
+        raise HTTPException(status_code=503, detail="RAG 服务不可用，请检查服务配置")
+    return _rag_manager
+
+
+def _get_kb_manager():
+    if _kb_manager is None:
+        raise HTTPException(status_code=503, detail="知识库服务不可用，请检查服务配置")
+    return _kb_manager
 
 
 # ──────────────────────── Models ────────────────────────
@@ -163,34 +223,48 @@ def _verify_kb_ownership(kb_id: int, user_id: int):
         conn.close()
 
 
-async def _ingest_document(kb_dir_name: str, file_path: Path, doc_id: int):
-    """Ingest a document into the knowledge base."""
+def _publish(doc_id: int, event: dict | None) -> None:
+    """Broadcast an event to all SSE subscribers for a document."""
+    for q in _doc_subscribers.get(doc_id, []):
+        q.put_nowait(event)
+
+
+def _db_set_status(doc_id: int, status: str, error: str | None = None) -> None:
     conn = get_connection(BASE_DIR)
     try:
-        cmd = (
-            f'echo "add {kb_dir_name} {file_path} text\nexit" | '
-            f'python -m knowledge_mcp.cli --base {BASE_DIR} shell'
-        )
-        process = await asyncio.create_subprocess_shell(
-            cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await process.communicate()
-        output = stdout.decode() + stderr.decode()
-
-        if "added successfully" in output.lower() or "Document added" in output:
-            conn.execute("UPDATE documents SET status='completed' WHERE id=?", (doc_id,))
-            logger.info(f"Document ingested successfully into {kb_dir_name}")
+        if error is not None:
+            conn.execute(
+                "UPDATE documents SET status=?, error_message=? WHERE id=?",
+                (status, error, doc_id),
+            )
         else:
-            err = output[-500:] if len(output) > 500 else output
-            conn.execute("UPDATE documents SET status='failed', error_message=? WHERE id=?", (err, doc_id))
-            logger.error(f"Ingestion failed: {err}")
+            conn.execute("UPDATE documents SET status=? WHERE id=?", (status, doc_id))
         conn.commit()
-    except Exception as e:
-        conn.execute("UPDATE documents SET status='failed', error_message=? WHERE id=?", (str(e), doc_id))
-        conn.commit()
-        logger.exception(f"Error ingesting: {e}")
     finally:
         conn.close()
+
+
+async def _ingest_document(kb_dir_name: str, file_path: Path, doc_id: int, rag_doc_id: str):
+    """Ingest a document: wait for semaphore slot, then run via RagManager."""
+    # Waiting for a free slot — document stays in 'queued' state
+    assert _ingest_semaphore is not None
+    async with _ingest_semaphore:
+        _db_set_status(doc_id, "processing")
+        _publish(doc_id, {"status": "processing"})
+        try:
+            rag = _get_rag_manager()
+            await rag.ingest_document(kb_name=kb_dir_name, file_path=file_path, doc_id=rag_doc_id)
+            _db_set_status(doc_id, "completed")
+            _publish(doc_id, {"status": "completed"})
+            logger.info(f"Document {doc_id} ingested successfully into {kb_dir_name}")
+        except Exception as e:
+            err_msg = str(e)[:500]
+            _db_set_status(doc_id, "failed", error=err_msg)
+            _publish(doc_id, {"status": "failed", "error": err_msg})
+            logger.exception(f"Error ingesting document {doc_id} into {kb_dir_name}: {e}")
+        finally:
+            # Signal all SSE connections that the stream is done
+            _publish(doc_id, None)
 
 
 # ──────────────────────── Endpoints ────────────────────────
@@ -203,7 +277,8 @@ async def health():
 # --- Auth ---
 
 @app.post("/api/auth/register", response_model=TokenResponse)
-async def register(req: RegisterRequest):
+@limiter.limit("10/minute")
+async def register(request: Request, req: RegisterRequest):
     conn = get_connection(BASE_DIR)
     try:
         if conn.execute("SELECT id FROM users WHERE username=?", (req.username,)).fetchone():
@@ -222,12 +297,20 @@ async def register(req: RegisterRequest):
 
 
 @app.post("/api/auth/login", response_model=TokenResponse)
-async def login(req: LoginRequest):
+@limiter.limit("10/minute")
+async def login(request: Request, req: LoginRequest):
     conn = get_connection(BASE_DIR)
     try:
         row = conn.execute("SELECT id, username, password_hash, display_name FROM users WHERE username=?", (req.username,)).fetchone()
         if not row or not verify_password(req.password, row["password_hash"]):
             raise HTTPException(status_code=401, detail="用户名或密码错误")
+        # Transparently upgrade legacy SHA-256 hashes to bcrypt on successful login
+        if needs_rehash(row["password_hash"]):
+            conn.execute(
+                "UPDATE users SET password_hash=? WHERE id=?",
+                (hash_password(req.password), row["id"]),
+            )
+            conn.commit()
         token = create_token(row["id"], row["username"], "")
         return TokenResponse(token=token, username=row["username"], display_name=row["display_name"])
     finally:
@@ -270,12 +353,8 @@ async def create_kb(req: CreateKBRequest, user: dict = Depends(get_current_user)
         kb_id = cursor.lastrowid
         conn.commit()
 
-        # Create the underlying knowledge base
-        cmd = f'python -m knowledge_mcp.cli --base {BASE_DIR} create {kb_dir} "{req.name}"'
-        process = await asyncio.create_subprocess_shell(
-            cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-        )
-        await process.communicate()
+        # Create the underlying knowledge base directory
+        _get_kb_manager().create_kb(kb_dir, description=req.description)
         logger.info(f"Created KB '{req.name}' -> {kb_dir}")
 
         return KBInfo(
@@ -384,7 +463,7 @@ async def upload_document(kb_id: int, file: UploadFile = File(...), user: dict =
     try:
         now = _now()
         cursor = conn.execute(
-            "INSERT INTO documents (kb_id, user_id, filename, original_name, file_size, status, created_at) VALUES (?,?,?,?,?,'processing',?)",
+            "INSERT INTO documents (kb_id, user_id, filename, original_name, file_size, status, created_at) VALUES (?,?,?,?,?,'queued',?)",
             (kb_id, user["user_id"], safe_name, file.filename, len(content), now)
         )
         doc_id = cursor.lastrowid
@@ -392,9 +471,9 @@ async def upload_document(kb_id: int, file: UploadFile = File(...), user: dict =
     finally:
         conn.close()
 
-    asyncio.create_task(_ingest_document(kb["kb_dir_name"], file_path, doc_id))
+    asyncio.create_task(_ingest_document(kb["kb_dir_name"], file_path, doc_id, rag_doc_id=safe_name))
 
-    return DocumentInfo(id=doc_id, filename=safe_name, original_name=file.filename, file_size=len(content), status="processing", error_message=None, created_at=now)
+    return DocumentInfo(id=doc_id, filename=safe_name, original_name=file.filename, file_size=len(content), status="queued", error_message=None, created_at=now)
 
 
 @app.get("/api/knowledge-bases/{kb_id}/documents", response_model=List[DocumentInfo])
@@ -416,9 +495,20 @@ async def delete_document(kb_id: int, doc_id: int, user: dict = Depends(get_curr
     kb = _verify_kb_ownership(kb_id, user["user_id"])
     conn = get_connection(BASE_DIR)
     try:
-        row = conn.execute("SELECT filename FROM documents WHERE id=? AND kb_id=?", (doc_id, kb_id)).fetchone()
+        row = conn.execute(
+            "SELECT filename, status FROM documents WHERE id=? AND kb_id=?", (doc_id, kb_id)
+        ).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="文档不存在")
+
+        # Remove from LightRAG knowledge graph (best-effort; don't fail if RAG unavailable)
+        if row["status"] == "completed" and _rag_manager is not None:
+            try:
+                await _rag_manager.remove_document(kb_name=kb["kb_dir_name"], doc_id=row["filename"])
+                logger.info(f"Removed doc '{row['filename']}' from LightRAG in {kb['kb_dir_name']}")
+            except Exception as e:
+                logger.warning(f"Could not remove doc from LightRAG (continuing): {e}")
+
         file_path = _get_upload_dir(kb["kb_dir_name"]) / row["filename"]
         if file_path.exists():
             file_path.unlink()
@@ -429,35 +519,74 @@ async def delete_document(kb_id: int, doc_id: int, user: dict = Depends(get_curr
         conn.close()
 
 
+# --- Document status SSE ---
+
+@app.get("/api/knowledge-bases/{kb_id}/documents/{doc_id}/status")
+async def document_status_sse(kb_id: int, doc_id: int, user: dict = Depends(get_current_user)):
+    """SSE stream that emits status events until the document reaches a terminal state."""
+    _verify_kb_ownership(kb_id, user["user_id"])
+
+    async def event_stream():
+        # Check current DB state first; if already terminal, emit and close immediately
+        conn = get_connection(BASE_DIR)
+        try:
+            row = conn.execute(
+                "SELECT status, error_message FROM documents WHERE id=? AND kb_id=?",
+                (doc_id, kb_id),
+            ).fetchone()
+        finally:
+            conn.close()
+
+        if not row:
+            yield f"data: {json.dumps({'error': '文档不存在'})}\n\n"
+            return
+
+        current_status = row["status"]
+        if current_status in ("completed", "failed"):
+            payload: dict = {"status": current_status}
+            if row["error_message"]:
+                payload["error"] = row["error_message"]
+            yield f"data: {json.dumps(payload)}\n\n"
+            return
+
+        # Subscribe to live events from _ingest_document
+        queue: asyncio.Queue = asyncio.Queue(maxsize=20)
+        _doc_subscribers.setdefault(doc_id, []).append(queue)
+        # Emit current status so the client has an initial value
+        yield f"data: {json.dumps({'status': current_status})}\n\n"
+        try:
+            while True:
+                event = await queue.get()
+                if event is None:
+                    # Task finished; sentinel signals end of stream
+                    break
+                yield f"data: {json.dumps(event)}\n\n"
+                if event.get("status") in ("completed", "failed"):
+                    break
+        finally:
+            subs = _doc_subscribers.get(doc_id, [])
+            if queue in subs:
+                subs.remove(queue)
+            if not subs:
+                _doc_subscribers.pop(doc_id, None)
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
 # --- Query (scoped to KB) ---
 
 @app.post("/api/knowledge-bases/{kb_id}/query", response_model=QueryResponse)
 async def query_kb(kb_id: int, req: QueryRequest, user: dict = Depends(get_current_user)):
     kb = _verify_kb_ownership(kb_id, user["user_id"])
     mode = req.mode if req.mode in ("local", "global", "hybrid", "mix", "naive") else "hybrid"
-
-    cmd = f'python -m knowledge_mcp.cli --base {BASE_DIR} query {kb["kb_dir_name"]} "{req.query}"'
     try:
-        process = await asyncio.create_subprocess_shell(
-            cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await process.communicate()
-        output = stdout.decode()
-
-        answer = ""
-        in_result = False
-        for line in output.split("\n"):
-            if "--- Query Result ---" in line:
-                in_result = True; continue
-            if "--- End Result ---" in line:
-                break
-            if in_result:
-                answer += line + "\n"
-
-        answer = answer.strip() or "未找到相关内容，请尝试换一种方式提问。"
-        return QueryResponse(answer=answer, mode=mode)
+        rag = _get_rag_manager()
+        answer: str = await rag.query(kb_name=kb["kb_dir_name"], query_text=req.query, mode=mode)
+        return QueryResponse(answer=answer.strip() or "未找到相关内容，请尝试换一种方式提问。", mode=mode)
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.exception(f"Query failed: {e}")
+        logger.exception(f"Query failed for KB {kb_id}: {e}")
         raise HTTPException(status_code=500, detail=f"查询失败: {str(e)}")
 
 

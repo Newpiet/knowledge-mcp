@@ -3,13 +3,12 @@
 import hashlib
 import hmac
 import secrets
-import json
-import base64
-import time
 from typing import Optional
 
+import bcrypt
+import jwt
 
-# JWT secret - in production, load from environment variable
+
 _jwt_secret: str = ""
 
 
@@ -20,57 +19,49 @@ def init_auth(secret: Optional[str] = None) -> None:
 
 
 def hash_password(password: str) -> str:
-    """Hash a password with a random salt using SHA-256."""
-    salt = secrets.token_hex(16)
-    pw_hash = hashlib.sha256(f"{salt}{password}".encode()).hexdigest()
-    return f"{salt}:{pw_hash}"
+    """Hash a password with bcrypt."""
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
-def verify_password(password: str, stored_hash: str) -> bool:
-    """Verify a password against a stored hash."""
+def _verify_legacy_password(password: str, stored_hash: str) -> bool:
+    """Verify against the old SHA-256 format (salt:hash)."""
     try:
         salt, pw_hash = stored_hash.split(":")
         return hmac.compare_digest(
             hashlib.sha256(f"{salt}{password}".encode()).hexdigest(),
-            pw_hash
+            pw_hash,
         )
     except (ValueError, AttributeError):
         return False
 
 
+def verify_password(password: str, stored_hash: str) -> bool:
+    """Verify a password. Handles both bcrypt and legacy SHA-256 hashes."""
+    if stored_hash.startswith("$2"):
+        return bcrypt.checkpw(password.encode(), stored_hash.encode())
+    return _verify_legacy_password(password, stored_hash)
+
+
+def needs_rehash(stored_hash: str) -> bool:
+    """Return True if the stored hash is the legacy format and should be upgraded."""
+    return not stored_hash.startswith("$2")
+
+
 def create_token(user_id: int, username: str, kb_name: str, expires_hours: int = 72) -> str:
-    """Create a simple JWT-like token."""
-    header = base64.urlsafe_b64encode(json.dumps({"alg": "HS256", "typ": "JWT"}).encode()).decode().rstrip("=")
-    payload_data = {
+    """Create a signed JWT token."""
+    import time
+    payload = {
         "user_id": user_id,
         "username": username,
         "kb_name": kb_name,
         "exp": int(time.time()) + expires_hours * 3600,
     }
-    payload = base64.urlsafe_b64encode(json.dumps(payload_data).encode()).decode().rstrip("=")
-    signature = hmac.new(_jwt_secret.encode(), f"{header}.{payload}".encode(), hashlib.sha256).hexdigest()
-    return f"{header}.{payload}.{signature}"
+    return jwt.encode(payload, _jwt_secret, algorithm="HS256")
 
 
 def decode_token(token: str) -> Optional[dict]:
-    """Decode and verify a token. Returns payload dict or None if invalid."""
+    """Decode and verify a JWT token. Returns payload dict or None if invalid/expired."""
     try:
-        parts = token.split(".")
-        if len(parts) != 3:
-            return None
-        header, payload, signature = parts
-        # Verify signature
-        expected_sig = hmac.new(_jwt_secret.encode(), f"{header}.{payload}".encode(), hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(signature, expected_sig):
-            return None
-        # Decode payload (add padding back)
-        padding = 4 - len(payload) % 4
-        if padding != 4:
-            payload += "=" * padding
-        payload_data = json.loads(base64.urlsafe_b64decode(payload))
-        # Check expiration
-        if payload_data.get("exp", 0) < time.time():
-            return None
-        return payload_data
-    except Exception:
+        return jwt.decode(token, _jwt_secret, algorithms=["HS256"])
+    except jwt.PyJWTError:
         return None
