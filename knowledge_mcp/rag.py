@@ -135,8 +135,7 @@ class RagManager:
                 working_dir=str(kb_path),
                 llm_model_func=llm_func,
                 llm_model_kwargs=llm_kwargs,
-                llm_model_name=llm_config.model_name, 
-                llm_model_max_token_size=llm_model_max_tokens,
+                llm_model_name=llm_config.model_name,
                 embedding_func=embed_func,
                 embedding_cache_config={
                     "enabled": cache_config.enabled,

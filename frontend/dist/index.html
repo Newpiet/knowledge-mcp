@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>耘智 YunZhi — 农业专属大模型知识中枢</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+:root{--bg:#fdfcf9;--ink:#2f3630;--muted:#7b857d;--line:#e6e5dd;--panel:#ffffff;--accent:#789980;--accent-hover:#5d7d65;--accent-light:#eef2ef;--accent-ink:#ffffff;--danger:#d97878;--danger-light:#fbecec;--shadow-sm:0 4px 16px rgba(47,54,48,0.04);--shadow-md:0 12px 32px rgba(47,54,48,0.06);--shadow-lg:0 24px 64px rgba(47,54,48,0.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;color:var(--ink);background:var(--bg);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:'Outfit','Inter',sans-serif;letter-spacing:-0.01em}
+.container{max-width:1240px;margin:0 auto;padding:0 32px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:40px;font-size:14px;font-weight:500;font-family:'Inter',sans-serif;border:1px solid transparent;cursor:pointer;transition:all .25s cubic-bezier(.2,.8,.2,1);text-decoration:none}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}.btn-primary:hover{background:var(--accent-hover);transform:translateY(-2px);box-shadow:0 8px 20px rgba(120,153,128,.25)}.btn-primary:disabled{background:var(--muted);opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-secondary{background:var(--panel);color:var(--ink);border-color:var(--line);box-shadow:var(--shadow-sm)}.btn-secondary:hover{background:var(--accent-light);border-color:var(--accent-light);transform:translateY(-2px)}
+.btn-danger{background:var(--danger-light);color:var(--danger);border-color:transparent;padding:6px 14px;font-size:13px;border-radius:40px}.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-sm{padding:6px 14px;font-size:13px}.btn-lg{padding:14px 32px;font-size:15px}
+.glass-panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow-sm)}
+.hover-card{transition:all .35s cubic-bezier(.2,.8,.2,1);cursor:pointer}.hover-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:rgba(120,153,128,.4)!important}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes slideUp{from{opacity:0;transform:translateY(30px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.animate-slide-up{animation:slideUp .6s cubic-bezier(.16,1,.3,1) forwards}.animate-fade-in{animation:fadeIn .5s ease forwards}
+.spinner{width:16px;height:16px;border:2px solid rgba(120,153,128,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s ease-in-out infinite}
+.form-input{width:100%;border:1px solid var(--line);border-radius:16px;padding:14px 16px;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s;background:#fff;color:var(--ink)}.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(120,153,128,.12)}.form-input::placeholder{color:#b0b8b2}
+textarea.form-input{min-height:80px;resize:vertical;line-height:1.6}
+.form-label{display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:8px}.form-label .opt{font-size:13px;color:var(--muted);font-weight:400}
+.header{background:rgba(255,255,255,.8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.4);box-shadow:0 4px 20px rgba(15,41,30,.03);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.upload-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;border:1.5px dashed var(--accent);border-radius:24px;padding:48px 24px;text-align:center;cursor:pointer;background:var(--accent-light);transition:.2s;position:relative}.upload-zone:hover,.upload-zone.dragover{background:#e2ebd6;border-color:var(--accent-hover)}.upload-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.file-item{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.03);margin-bottom:10px}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;border-radius:40px;font-weight:600}
+.badge-completed,.badge-active{background:#f0f5f2;color:var(--accent)}.badge-processing{background:#fff9e6;color:#b5850b}.badge-failed{background:var(--danger-light);color:var(--danger)}.badge-pending{background:#f3f4f6;color:var(--muted)}
+.modal-overlay{position:fixed;inset:0;background:rgba(47,54,48,.6);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-body{background:#fff;border-radius:32px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.15)}
+.search-result{margin-top:16px;padding:20px;background:#fafafa;border:1px solid var(--line);border-radius:16px;font-size:14px;line-height:1.8;white-space:pre-wrap;max-height:500px;overflow-y:auto}
+.toast-container{position:fixed;bottom:32px;right:32px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.toast{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:16px;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,.12);border:1px solid var(--line);pointer-events:auto;min-width:280px;max-width:400px;font-size:14px;font-weight:500}.toast.error{border-color:var(--danger-light)}
+.kb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:24px}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(123,133,125,.2);border-radius:4px}
+    </style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+const API='/api';
+const ALLOWED_EXT=new Set(['.pdf','.txt','.md','.markdown','.rst','.docx','.doc','.pptx','.xlsx','.xls','.html','.csv','.tsv','.json','.rtf']);
+let token=localStorage.getItem('yz_token');
+let currentUser=null;
+let authMode='login';
+
+// State
+let page='dashboard'; // dashboard | detail
+let kbs=[];
+let currentKB=null;
+let docs=[];
+let showCreateModal=false;
+
+// ─── Toast ───
+let tid=0;
+function toast(msg,type='success'){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className=`toast animate-slide-up ${type}`;t.innerHTML=`<span>${type==='error'?'⚠️':'✓'}</span><span style="flex:1">${esc(msg)}</span><button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px">✕</button>`;c.appendChild(t);setTimeout(()=>t.remove(),3500)}
+
+// ─── API ───
+async function api(path,opts={}){const h={...(opts.headers||{})};if(token)h['Authorization']=`Bearer ${token}`;if(!(opts.body instanceof FormData))h['Content-Type']='application/json';const res=await fetch(`${API}${path}`,{...opts,headers:h});if(res.status===401){logout();throw new Error('请重新登录')}const data=await res.json();if(!res.ok)throw new Error(data.detail||'请求失败');return data}
+
+// ─── Auth ───
+function saveAuth(d){token=d.token;localStorage.setItem('yz_token',token);currentUser=d;page='dashboard';render()}
+function logout(){token=null;currentUser=null;localStorage.removeItem('yz_token');page='dashboard';render()}
+
+async function handleRegister(e){e.preventDefault();const b=e.target.querySelector('button[type="submit"]');b.disabled=true;try{const d=await api('/auth/register',{method:'POST',body:JSON.stringify({username:e.target.username.value,password:e.target.password.value,display_name:e.target.display_name.value||null})});toast('注册成功，欢迎使用耘智平台');saveAuth(d)}catch(err){toast(err.message,'error')}finally{b.disabled=false}}
+async function handleLogin(e){e.preventDefault();const b=e.target.querySelector('button[type="submit"]');b.disabled=true;try{const d=await api('/auth/login',{method:'POST',body:JSON.stringify({username:e.target.username.value,password:e.target.password.value})});toast('登录成功');saveAuth(d)}catch(err){toast(err.message,'error')}finally{b.disabled=false}}
+
+// ─── KBs ───
+async function loadKBs(){try{kbs=await api('/knowledge-bases');renderDashboardContent()}catch(e){console.error(e)}}
+async function createKB(e){e.preventDefault();const b=e.target.querySelector('button[type="submit"]');b.disabled=true;try{const d=await api('/knowledge-bases',{method:'POST',body:JSON.stringify({name:e.target.kb_name.value,description:e.target.kb_desc.value||null,domain:e.target.kb_domain.value||'农业'})});toast(`知识库「${d.name}」创建成功`);showCreateModal=false;openKBDetail(d.id)}catch(err){toast(err.message,'error')}finally{b.disabled=false}}
+async function deleteKB(id,name){if(!confirm(`确定要删除知识库「${name}」吗？\n所有文件、索引和向量数据将永久删除，此操作不可恢复。`))return;try{await api(`/knowledge-bases/${id}`,{method:'DELETE'});toast(`知识库「${name}」已删除`);page='dashboard';render()}catch(err){toast(err.message,'error')}}
+
+// ─── KB Detail ───
+async function openKBDetail(id){try{currentKB=await api(`/knowledge-bases/${id}`);page='detail';render()}catch(err){toast(err.message,'error')}}
+async function loadDocs(){if(!currentKB)return;try{docs=await api(`/knowledge-bases/${currentKB.id}/documents`);renderDocList()}catch(e){console.error(e)}}
+async function uploadFile(file){const ext='.'+file.name.split('.').pop().toLowerCase();if(!ALLOWED_EXT.has(ext)){toast(`不支持的文件类型: ${ext}`,'error');return}const form=new FormData();form.append('file',file);try{await api(`/knowledge-bases/${currentKB.id}/documents`,{method:'POST',body:form});toast(`${file.name} 上传成功，正在构建索引...`);loadDocs()}catch(err){toast('上传失败: '+err.message,'error')}}
+async function deleteDoc(id,name){if(!confirm(`确定要删除「${name}」吗？`))return;try{await api(`/knowledge-bases/${currentKB.id}/documents/${id}`,{method:'DELETE'});toast('文档已删除');loadDocs()}catch(err){toast(err.message,'error')}}
+async function handleQuery(e){e.preventDefault();const input=e.target.querySelector('input');const btn=e.target.querySelector('button');if(!input.value.trim())return;btn.disabled=true;const el=document.getElementById('search-result');el.style.display='block';el.innerHTML='<div style="display:flex;align-items:center;gap:10px;color:var(--muted)"><div class="spinner"></div> 正在检索知识库...</div>';try{const d=await api(`/knowledge-bases/${currentKB.id}/query`,{method:'POST',body:JSON.stringify({query:input.value,mode:'hybrid'})});el.textContent=d.answer}catch(err){el.innerHTML=`<span style="color:var(--danger)">查询失败: ${esc(err.message)}</span>`}finally{btn.disabled=false}}
+
+// ─── Render ───
+function renderDocList(){
+    const el=document.getElementById('doc-list');const statsEl=document.getElementById('doc-stats');if(!el)return;
+    const total=docs.length,completed=docs.filter(d=>d.status==='completed').length,processing=docs.filter(d=>d.status==='processing').length;
+    if(statsEl)statsEl.innerHTML=`<div style="display:flex;flex-direction:column"><span style="font-size:12px;color:var(--muted)">文件总量</span><span style="font-size:22px;font-weight:600;color:var(--ink);font-family:Outfit">${total}</span></div><div style="width:1px;height:30px;background:var(--line)"></div><div style="display:flex;flex-direction:column"><span style="font-size:12px;color:var(--muted)">索引完成</span><span style="font-size:22px;font-weight:600;color:var(--accent);font-family:Outfit">${completed}</span></div><div style="width:1px;height:30px;background:var(--line)"></div><div style="display:flex;flex-direction:column"><span style="font-size:12px;color:var(--muted)">构建中</span><span style="font-size:22px;font-weight:600;color:#b5850b;font-family:Outfit">${processing}</span></div>`;
+    if(total===0){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:14px">暂无文档，请上传您的农业知识文件</div>';return}
+    el.innerHTML=docs.map(d=>`<div class="file-item animate-fade-in"><div style="display:flex;align-items:center;gap:12px;overflow:hidden;flex:1"><div style="width:38px;height:38px;flex-shrink:0;background:var(--bg);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--accent);border:1px solid var(--line);font-size:16px">📄</div><div style="overflow:hidden"><div style="font-size:14px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.original_name)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px"><span style="color:var(--accent);font-weight:500">${formatSize(d.file_size)}</span> · ${formatDate(d.created_at)}</div></div></div><div style="display:flex;align-items:center;gap:10px"><span class="badge badge-${d.status}">${statusIcon(d.status)} ${statusText(d.status)}</span><button class="btn-danger" onclick="deleteDoc(${d.id},'${esc(d.original_name)}')" style="border:none;cursor:pointer">删除</button></div></div>`).join('');
+    if(processing>0)setTimeout(loadDocs,5000);
+}
+
+function renderDashboardContent(){
+    const el=document.getElementById('kb-grid');if(!el)return;
+    if(kbs.length===0){el.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:80px 20px"><div style="width:80px;height:80px;background:var(--accent-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:36px">📚</div><h3 style="font-size:20px;font-weight:600;margin-bottom:10px">暂无知识库</h3><p style="font-size:15px;color:var(--muted);margin-bottom:24px">您还没有创建任何知识库，立即开始构建您的农业智库。</p><button class="btn btn-primary btn-lg" onclick="showCreateModal=true;renderCreateModal()">＋ 新建知识空间</button></div>`;return}
+    el.innerHTML=kbs.map(kb=>`<div class="glass-panel hover-card" onclick="openKBDetail(${kb.id})" style="padding:28px;display:flex;flex-direction:column;min-height:220px;border-radius:24px"><div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center"><div style="width:48px;height:48px;border-radius:16px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:20px;font-weight:700;font-family:Outfit">${kb.name.charAt(0).toUpperCase()}</div><div><h3 style="font-size:17px;font-weight:600;color:var(--ink)">${esc(kb.name)}</h3><div style="font-size:13px;color:var(--muted);margin-top:3px;font-weight:500">${esc(kb.domain||'通用农业')}</div></div></div><span class="badge badge-${kb.status}">✓ 就绪</span></div><div style="font-size:14px;color:var(--muted);flex:1;margin-bottom:16px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.6">${esc(kb.description||'暂无详细描述信息。')}</div><div style="border-top:1px solid var(--line);padding-top:16px;display:flex;align-items:center;justify-content:space-between"><div style="display:flex;gap:20px"><div style="display:flex;align-items:center;gap:6px;font-size:14px;color:var(--ink);font-weight:500">📁 ${kb.total_files} 个文件</div><div style="display:flex;align-items:center;gap:6px;font-size:14px;color:var(--accent);font-weight:500">✓ ${kb.completed_files} 已索引</div></div><span style="color:var(--muted)">→</span></div></div>`).join('');
+}
+
+function renderCreateModal(){
+    let m=document.getElementById('create-modal');
+    if(!showCreateModal){if(m)m.remove();return}
+    if(!m){m=document.createElement('div');m.id='create-modal';document.body.appendChild(m)}
+    m.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this){showCreateModal=false;renderCreateModal()}"><div class="modal-body animate-slide-up" style="max-width:520px"><div style="padding:36px 40px 0"><h2 style="font-size:24px;font-weight:700;margin-bottom:8px">创建农业知识空间</h2><p style="font-size:14px;color:var(--muted);margin-bottom:28px">构建结构化农业资产，自动生成专属的 MCP 检索引擎</p></div><form onsubmit="createKB(event)" style="padding:0 40px 32px"><div style="margin-bottom:20px"><label class="form-label">领域</label><input name="kb_domain" class="form-input" value="农业" placeholder="例如：果树、设施蔬菜、养殖"></div><div style="margin-bottom:20px"><label class="form-label">知识空间名称</label><input name="kb_name" class="form-input" required placeholder="例如：红富士病虫害防控指南" autofocus></div><div style="margin-bottom:28px"><label class="form-label">空间简介 <span class="opt">(选填)</span></label><textarea name="kb_desc" class="form-input" placeholder="简单描述该知识库的作用，将作为 LLM 识别和调用此工具的 Context 依据"></textarea></div><div style="display:flex;gap:12px"><button type="button" class="btn btn-secondary" style="flex:1" onclick="showCreateModal=false;renderCreateModal()">取消</button><button type="submit" class="btn btn-primary" style="flex:1">创建知识空间</button></div></form></div></div>`;
+}
+
+function render(){
+    const root=document.getElementById('app');
+    if(!token){
+        // Auth
+        root.innerHTML=authMode==='login'?`
+        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px"><div class="animate-slide-up" style="width:100%;max-width:440px">
+            <div style="text-align:center;margin-bottom:40px"><div style="font-size:36px;margin-bottom:12px">🌾</div><h1 style="font-size:28px;font-weight:800;color:var(--ink)">耘智 <span style="font-weight:400;opacity:.8;font-family:Outfit">YunZhi</span></h1><p style="color:var(--muted);font-size:14px;margin-top:8px">农业专属大模型知识中枢</p></div>
+            <div class="glass-panel" style="padding:36px 40px;border-radius:32px"><h2 style="font-size:20px;font-weight:700;margin-bottom:24px;text-align:center">登录您的账户</h2><form onsubmit="handleLogin(event)"><div style="margin-bottom:20px"><label class="form-label">用户名</label><input name="username" class="form-input" required></div><div style="margin-bottom:28px"><label class="form-label">密码</label><input name="password" type="password" class="form-input" required></div><button type="submit" class="btn btn-primary btn-lg" style="width:100%">登录</button></form><div style="text-align:center;margin-top:20px;font-size:13px;color:var(--muted)">还没有账户？<a href="#" onclick="authMode='register';render();return false" style="color:var(--accent);text-decoration:none;font-weight:600">立即注册</a></div></div>
+        </div></div>`:`
+        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px"><div class="animate-slide-up" style="width:100%;max-width:440px">
+            <div style="text-align:center;margin-bottom:40px"><div style="font-size:36px;margin-bottom:12px">🌾</div><h1 style="font-size:28px;font-weight:800;color:var(--ink)">耘智 <span style="font-weight:400;opacity:.8;font-family:Outfit">YunZhi</span></h1><p style="color:var(--muted);font-size:14px;margin-top:8px">创建账户，获取专属知识库</p></div>
+            <div class="glass-panel" style="padding:36px 40px;border-radius:32px"><h2 style="font-size:20px;font-weight:700;margin-bottom:24px;text-align:center">注册新账户</h2><form onsubmit="handleRegister(event)"><div style="margin-bottom:20px"><label class="form-label">用户名</label><input name="username" class="form-input" required minlength="3"></div><div style="margin-bottom:20px"><label class="form-label">密码</label><input name="password" type="password" class="form-input" required minlength="6"></div><div style="margin-bottom:28px"><label class="form-label">显示名称 <span class="opt">(选填)</span></label><input name="display_name" class="form-input" placeholder="例如：张农技师"></div><button type="submit" class="btn btn-primary btn-lg" style="width:100%">注册</button></form><div style="text-align:center;margin-top:20px;font-size:13px;color:var(--muted)">已有账户？<a href="#" onclick="authMode='login';render();return false" style="color:var(--accent);text-decoration:none;font-weight:600">返回登录</a></div></div>
+        </div></div>`;
+        return;
+    }
+
+    const name=currentUser?.display_name||currentUser?.username||'';
+
+    if(page==='detail'&&currentKB){
+        // ─── KB Detail Page ───
+        root.innerHTML=`
+        <header class="header"><div style="display:flex;align-items:center;gap:14px"><div style="font-size:28px">🌾</div><div><h1 style="font-size:19px;font-weight:800;margin:0;color:var(--ink)">耘智 <span style="font-weight:400;opacity:.8;font-size:18px;font-family:Outfit">YunZhi</span></h1><div style="font-size:12px;color:var(--muted);font-weight:500;margin-top:2px">农业专属大模型知识中枢</div></div></div><div style="display:flex;align-items:center;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);font-weight:600;background:var(--accent-light);padding:6px 14px;border-radius:20px">👤 ${esc(name)}</div><button class="btn btn-secondary btn-sm" onclick="logout()" style="padding:8px 12px;border-radius:10px">退出</button></div></header>
+        <main class="container" style="padding:32px">
+            <div class="animate-fade-in">
+                <!-- Breadcrumb -->
+                <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
+                    <a href="#" onclick="page='dashboard';render();return false" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-size:13px;font-weight:600;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:6px 14px;transition:.2s" onmouseover="this.style.background='var(--accent-light)';this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.background='var(--bg)';this.style.borderColor='var(--line)';this.style.color='var(--ink)'">← 返回工作台</a>
+                    <span style="font-size:13px;color:var(--muted)">工作台 / <span style="color:var(--ink);font-weight:500">${esc(currentKB.name)}</span></span>
+                </div>
+
+                <!-- KB Header -->
+                <div class="glass-panel" style="padding:32px 40px;border-radius:24px;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px">
+                    <div><div style="display:flex;align-items:center;gap:16px;margin-bottom:12px"><div style="width:56px;height:56px;border-radius:16px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:24px">📚</div><div><div style="display:flex;align-items:center;gap:12px;margin-bottom:4px"><h1 style="font-size:26px;font-weight:700;margin:0">${esc(currentKB.name)}</h1><span class="badge badge-active">✓ 就绪</span><span style="font-size:13px;padding:4px 10px;border-radius:8px;background:var(--bg);color:var(--muted);font-weight:500">${esc(currentKB.domain)}</span></div><div style="font-size:14px;color:var(--muted)">${esc(currentKB.description||'暂无简介')}</div></div></div>
+                    <div style="display:flex;align-items:center;gap:24px;font-size:14px;color:var(--muted);margin-left:72px;margin-top:16px"><div style="display:flex;flex-direction:column"><span style="font-size:12px">文件总量</span><span style="font-size:20px;font-weight:600;color:var(--ink);font-family:Outfit">${currentKB.total_files}</span></div><div style="width:1px;height:30px;background:var(--line)"></div><div style="display:flex;flex-direction:column"><span style="font-size:12px">索引完成</span><span style="font-size:20px;font-weight:600;color:var(--accent);font-family:Outfit">${currentKB.completed_files}</span></div></div></div>
+                    <button class="btn btn-secondary" onclick="deleteKB(${currentKB.id},'${esc(currentKB.name)}')" style="color:var(--danger);border-color:var(--danger-light)">删除此知识库</button>
+                </div>
+
+                <!-- Two Column -->
+                <div style="display:grid;grid-template-columns:minmax(0,6fr) minmax(0,4fr);gap:24px">
+                    <div>
+                        <h2 style="font-size:18px;font-weight:600;margin-bottom:16px">数据源与文件管理</h2>
+                        <div class="glass-panel" style="padding:28px;border-radius:24px">
+                            <div class="upload-zone" id="upload-zone"><input type="file" id="file-input" multiple accept="${Array.from(ALLOWED_EXT).join(',')}"><div style="width:64px;height:64px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);margin-bottom:16px;font-size:28px">📤</div><div style="font-size:16px;font-weight:600;color:var(--ink);margin-bottom:8px">点击或拖拽上传农业原始资料</div><div style="font-size:13px;color:var(--muted)">支持 PDF、Word、Markdown、TXT、Excel、CSV</div></div>
+                            <div id="doc-stats" style="display:flex;align-items:center;gap:24px;padding:20px 0;margin-top:20px;border-top:1px solid var(--line)"></div>
+                            <div id="doc-list" style="margin-top:8px"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h2 style="font-size:18px;font-weight:600;margin-bottom:16px">检索调试沙盒</h2>
+                        <div class="glass-panel" style="padding:28px;border-radius:24px">
+                            <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">验证知识库的检索效果，输入自然语言问题进行测试。</p>
+                            <form onsubmit="handleQuery(event)"><input type="text" class="form-input" placeholder="输入您的农业问题..." required style="margin-bottom:12px"><button type="submit" class="btn btn-primary" style="width:100%">🔍 检索知识库</button></form>
+                            <div id="search-result" class="search-result" style="display:none"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>`;
+        setupUpload();loadDocs();
+    } else {
+        // ─── Dashboard ───
+        root.innerHTML=`
+        <header class="header"><div style="display:flex;align-items:center;gap:14px"><div style="font-size:28px">🌾</div><div><h1 style="font-size:19px;font-weight:800;margin:0;color:var(--ink)">耘智 <span style="font-weight:400;opacity:.8;font-size:18px;font-family:Outfit">YunZhi</span></h1><div style="font-size:12px;color:var(--muted);font-weight:500;margin-top:2px">农业专属大模型知识中枢</div></div></div><div style="display:flex;align-items:center;gap:12px"><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);font-weight:600;background:var(--accent-light);padding:6px 14px;border-radius:20px">👤 ${esc(name)}</div><button class="btn btn-secondary btn-sm" onclick="logout()" style="padding:8px 12px;border-radius:10px">退出</button></div></header>
+        <main class="container" style="padding:32px">
+            <div class="animate-fade-in" style="padding:24px 0 60px">
+                <!-- Hero -->
+                <div class="glass-panel animate-slide-up" style="padding:56px 60px;margin-bottom:48px;border-radius:32px;background:#eef2e6;border:none;position:relative;overflow:hidden">
+                    <svg style="position:absolute;top:0;right:0;width:100%;height:100%;z-index:0;opacity:.9" viewBox="0 0 1000 400" preserveAspectRatio="none"><path d="M600,0 C750,150 1000,50 1000,200 L1000,0 Z" fill="#dce6d2"/><path d="M700,400 C850,250 1000,400 1000,400 Z" fill="#e2ead8"/><path d="M-50,400 C150,250 300,400 400,400 L-50,400 Z" fill="#dce6d2"/></svg>
+                    <div style="position:relative;z-index:1;max-width:640px">
+                        <div style="display:inline-flex;align-items:center;gap:8px;color:var(--accent);font-size:14px;font-weight:700;margin-bottom:16px">🌿 耘智 YunZhi</div>
+                        <h1 style="font-size:40px;font-weight:700;margin-bottom:20px;line-height:1.15">构建您的农业<br>专属智慧大脑</h1>
+                        <p style="color:var(--muted);font-size:16px;margin-bottom:36px;line-height:1.7">将离散的农技资料汇聚一处，自动提取结构化数据，生成专有的 MCP 索引源。<br>让大模型等智能工具时刻汲取最准确的农业私有养分。</p>
+                        <button class="btn btn-primary btn-lg" onclick="showCreateModal=true;renderCreateModal()">＋ 新建知识空间</button>
+                    </div>
+                </div>
+                <!-- KB List -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px"><div><h2 style="font-size:22px;font-weight:700">知识库项目</h2><div style="font-size:14px;color:var(--muted);margin-top:4px">管理您的独立隔离知识库上下文</div></div></div>
+                <div class="kb-grid" id="kb-grid"></div>
+            </div>
+        </main>`;
+        loadKBs();
+    }
+}
+
+function setupUpload(){const z=document.getElementById('upload-zone'),i=document.getElementById('file-input');if(!z||!i)return;i.addEventListener('change',e=>{Array.from(e.target.files).forEach(uploadFile);e.target.value=''});z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('dragover')});z.addEventListener('dragleave',()=>z.classList.remove('dragover'));z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('dragover');Array.from(e.dataTransfer.files).forEach(uploadFile)})}
+
+// ─── Utils ───
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+function formatSize(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB'}
+function formatDate(s){try{return new Date(s).toLocaleString('zh-CN')}catch{return s}}
+function statusText(s){return{completed:'索引完成',processing:'构建中',failed:'异常',pending:'等待中'}[s]||s}
+function statusIcon(s){return{completed:'✓',processing:'⟳',failed:'⚠',pending:'◷'}[s]||''}
+
+// ─── Init ───
+(async()=>{if(token){try{currentUser=await api('/user/me')}catch{token=null;localStorage.removeItem('yz_token')}}render()})();
+</script>
+</body>
+</html>

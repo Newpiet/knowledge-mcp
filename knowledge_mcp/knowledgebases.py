@@ -29,7 +29,6 @@ DEFAULT_QUERY_PARAMS: dict[str, Any] = {
     "ll_keywords": [],  # New parameter - low-level keywords
     "conversation_history": [],  # New parameter - conversation history
     "history_turns": 3,
-    "ids": None,  # New parameter - list of IDs to filter results
     "model_func": None,  # New parameter - optional LLM model function override
     "user_prompt": "",  # User-configurable prompt for LLM response formatting
     "enable_rerank": True,  # New parameter - enable reranking for text chunks

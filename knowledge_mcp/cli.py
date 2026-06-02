@@ -260,6 +260,22 @@ def _cleanup_event_loop(loop):
     suppression_thread.join(timeout=1.5)  # Wait a bit longer
 
 
+def run_web_mode(host: str = "0.0.0.0", port: int = 8000):
+    """Start the web API server."""
+    import uvicorn
+    import os
+    config = Config.get_instance()
+    os.environ["KB_BASE_DIR"] = str(config.knowledge_base.base_dir)
+    logger.info(f"Starting web server on {host}:{port}")
+    print(f"Starting web server at http://{host}:{port}")
+    uvicorn.run(
+        "knowledge_mcp.api.server:app",
+        host=host,
+        port=port,
+        log_level="info",
+    )
+
+
 def run_query_mode(kb_name: str, query_text: str):
     """Runs a single query against the specified knowledge base (CLI mode)."""
     logger.info(f"Running query against KB '{kb_name}': {query_text}")
@@ -373,6 +389,12 @@ def main():
     # List command (one-off, for Docker etc.)
     parser_list = subparsers.add_parser("list", help="List all knowledge bases")
     parser_list.set_defaults(func=run_list_mode)
+
+    # Web command - start the web API server
+    parser_web = subparsers.add_parser("web", help="Start the web management interface")
+    parser_web.add_argument("--host", default="0.0.0.0", help="Host to bind (default: 0.0.0.0)")
+    parser_web.add_argument("--port", type=int, default=8000, help="Port to bind (default: 8000)")
+    parser_web.set_defaults(func=lambda: run_web_mode(args.host, args.port))
 
     try:
         args = parser.parse_args(argv[1:])

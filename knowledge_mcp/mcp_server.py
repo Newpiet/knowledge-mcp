@@ -59,14 +59,13 @@ class MCP:
         query: Annotated[str, Field(description="Natural-language query.")],
         mode: Annotated[str, Field("mix", description='Retrieval mode ("mix", "local", "global", "hybrid", "naive", "bypass") default: "mix"')],
         top_k: Annotated[int, Field(30, ge=5, le=120, description="Number of query results to return (5-120). 30 is reasonable.")],
-        ids: Annotated[Optional[List[str]], Field(None, description="Restrict search to these document IDs.")],
     ) -> str:
         """
         Retrieve raw context passages from a knowledge‑base without generating an LLM answer.
         """
         logger.info(f"Executing retrieve for KB '{kb}'")
         # Prepare kwargs for rag_manager.query
-        query_kwargs = {'mode': mode, 'top_k': top_k, 'ids': ids}
+        query_kwargs = {'mode': mode, 'top_k': top_k}
         query_kwargs['only_need_context'] = True
         
         try:
@@ -94,14 +93,13 @@ class MCP:
         mode: Annotated[str, Field("mix", description='Retrieval mode ("mix", "local", "global", "hybrid", "naive", "bypass") default: "mix"')],
         top_k: Annotated[int, Field(30, ge=5, le=120, description="Number of query results to return (5-120). 30 is reasonable.")],
         response_type: Annotated[str, Field("Multiple Paragraphs", description='Answer style ("Multiple Paragraphs", "Single Paragraph", "Bullet Points").')],
-        ids: Annotated[Optional[List[str]], Field(None, description="Restrict search to these document IDs.")],
     ) -> str:
         """
         Generate an LLM‑written answer using the chosen knowledge‑base and return it with citations.
         """
         logger.info(f"Executing answer for KB '{kb}'")
         # Prepare kwargs for rag_manager.query
-        query_kwargs = {'mode': mode, 'top_k': top_k, 'response_type': response_type, 'ids': ids}
+        query_kwargs = {'mode': mode, 'top_k': top_k, 'response_type': response_type}
         query_kwargs['only_need_context'] = False
 
         try:
