@@ -343,8 +343,8 @@ function renderDashboardContent() {
       <div style="font-size:13.5px;color:var(--muted);flex:1;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.65">${esc(kb.description || '暂无简介')}</div>
       <div style="border-top:1px solid var(--line);padding-top:13px;display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;gap:16px">
-          <span style="font-size:13px;color:var(--muted)">📁 ${kb.total_files} 个文件</span>
-          <span style="font-size:13px;color:var(--accent);font-weight:500">✓ ${kb.completed_files} 已索引</span>
+          <span style="font-size:13px;color:var(--muted)">📁 ${kb.total_files ?? '—'} 个文件</span>
+          <span style="font-size:13px;color:var(--accent);font-weight:500">✓ ${kb.completed_files ?? '—'} 已索引</span>
         </div>
         <span style="color:var(--muted);font-size:16px">›</span>
       </div>
@@ -379,12 +379,13 @@ function renderCreateModal() {
 
 // ─── Render: MCP Config panel ─────────────────────────────────────────
 let _mcpTab = 'json'; // 'json' | 'fields'
+let _mcpExpanded = false; // collapsed by default
 
 function renderMCPConfig() {
   if (!currentKB) return '';
   return `
-    <div class="glass-panel" style="padding:22px 26px;border-radius:20px;margin-bottom:20px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div class="glass-panel" style="border-radius:20px;margin-bottom:20px;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;cursor:pointer;user-select:none" onclick="_mcpExpanded=!_mcpExpanded;renderMCPConfig_inplace()">
         <div style="display:flex;align-items:center;gap:10px">
           <span style="font-size:18px">🔌</span>
           <div>
@@ -392,13 +393,25 @@ function renderMCPConfig() {
             <div style="font-size:12.5px;color:var(--muted);margin-top:1px">将此知识库接入 Claude Desktop 或任意支持 MCP 的客户端</div>
           </div>
         </div>
-        <div class="tabs">
-          <button class="tab ${_mcpTab==='json'?'active':''}" onclick="_mcpTab='json';refreshMCPPanel()">JSON 配置</button>
-          <button class="tab ${_mcpTab==='fields'?'active':''}" onclick="_mcpTab='fields';refreshMCPPanel()">字段配置</button>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${_mcpExpanded ? `<div class="tabs">
+            <button class="tab ${_mcpTab==='json'?'active':''}" onclick="event.stopPropagation();_mcpTab='json';refreshMCPPanel()">JSON 配置</button>
+            <button class="tab ${_mcpTab==='fields'?'active':''}" onclick="event.stopPropagation();_mcpTab='fields';refreshMCPPanel()">字段配置</button>
+          </div>` : ''}
+          <span style="font-size:18px;color:var(--muted);transition:transform .2s;transform:rotate(${_mcpExpanded?'180':'0'}deg)">⌄</span>
         </div>
       </div>
-      <div id="mcp-panel-body"></div>
+      ${_mcpExpanded ? `<div style="padding:0 22px 20px" id="mcp-panel-body"></div>` : `<div id="mcp-panel-body"></div>`}
     </div>`;
+}
+
+function renderMCPConfig_inplace() {
+  const panel = document.querySelector('[onclick*="renderMCPConfig_inplace"]')?.closest('.glass-panel');
+  if (!panel) { render(); return; }
+  const tmp = document.createElement('div');
+  tmp.innerHTML = renderMCPConfig();
+  panel.replaceWith(tmp.firstElementChild);
+  if (_mcpExpanded) refreshMCPPanel();
 }
 
 function refreshMCPPanel() {
@@ -597,16 +610,18 @@ function renderDetail(root) {
           <div>
             <div class="section-header"><div class="section-title">检索调试</div></div>
             <div class="glass-panel" style="padding:24px;border-radius:20px">
-              <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.65">验证知识库检索效果，输入自然语言问题进行测试。</p>
               <!-- Mode selector -->
-              <div style="margin-bottom:12px">
-                <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px">检索模式</div>
-                <div class="tabs" id="mode-tabs">
-                  ${['hybrid','local','global','mix','naive'].map(m => `<button class="tab ${m === queryMode ? 'active' : ''}" onclick="setMode('${m}')">${modeName(m)}</button>`).join('')}
+              <div style="margin-bottom:14px">
+                <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;letter-spacing:.04em">检索模式</div>
+                <div class="tabs" id="mode-tabs" style="flex-wrap:wrap;gap:5px">
+                  ${['hybrid','local','global','mix','naive'].map(m => `<button class="tab ${m === queryMode ? 'active' : ''}" onclick="setMode('${m}')" title="${modeDesc(m)}">${modeName(m)}</button>`).join('')}
                 </div>
+                <div id="mode-desc" style="font-size:12px;color:var(--muted);margin-top:8px;min-height:18px">${modeDesc(queryMode)}</div>
               </div>
               <form onsubmit="handleQuery(event)">
-                <input type="text" class="form-input" placeholder="输入您的农业问题…" required style="margin-bottom:10px">
+                <textarea class="form-input" placeholder="输入您的农业问题…" required rows="3"
+                  style="margin-bottom:10px;resize:vertical;min-height:80px"
+                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.form.requestSubmit()}"></textarea>
                 <button type="submit" class="btn btn-primary" style="width:100%">🔍 检索</button>
               </form>
               <div id="search-result" class="search-result" style="display:none"></div>
@@ -617,14 +632,20 @@ function renderDetail(root) {
     </main>`;
 
   renderKBHeader();
-  refreshMCPPanel();
+  if (_mcpExpanded) refreshMCPPanel();
   setupUpload();
   loadDocs();
 }
 
 function setMode(m) {
   queryMode = m;
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.textContent === modeName(m)));
+  document.querySelectorAll('#mode-tabs .tab').forEach(t => t.classList.toggle('active', t.textContent === modeName(m)));
+  const desc = document.getElementById('mode-desc');
+  if (desc) desc.textContent = modeDesc(m);
+}
+
+function modeDesc(m) {
+  return { hybrid:'综合局部与全局，适合大多数问题（推荐）', local:'深入相关文档片段，适合具体细节查询', global:'跨文档宏观推理，适合总结性问题', mix:'混合多种策略，覆盖更广', naive:'基础向量搜索，速度最快' }[m] || '';
 }
 
 function setupUpload() {
