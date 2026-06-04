@@ -423,44 +423,38 @@ function switchMCPTab(tab) {
   refreshMCPPanel();
 }
 
+function getMCPSseUrl() {
+  const host = window.location.hostname || '139.196.25.63';
+  return `http://${host}:8001/sse`;
+}
+
 function refreshMCPPanel() {
   const el = document.getElementById('mcp-panel-body');
   if (!el) return;
   if (_mcpTab === 'json') {
     el.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-        <div>
-          <label style="font-size:11.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px">CONFIG 文件路径</label>
-          <input id="mcp-config-path" class="form-input" style="font-size:13px;padding:8px 12px;border-radius:10px;font-family:'SF Mono',Monaco,monospace"
-            placeholder="/path/to/config.yaml" oninput="updateMCPJson()">
-        </div>
-        <div>
-          <label style="font-size:11.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px">服务名称 <span style="font-weight:400">(可自定义)</span></label>
-          <input id="mcp-server-name" class="form-input" style="font-size:13px;padding:8px 12px;border-radius:10px"
-            value="knowledge-mcp" oninput="updateMCPJson()">
-        </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:11.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px">服务名称 <span style="font-weight:400">(可自定义)</span></label>
+        <input id="mcp-server-name" class="form-input" style="font-size:13px;padding:8px 12px;border-radius:10px"
+          value="knowledge-mcp" oninput="updateMCPJson()">
       </div>
-      <div style="font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">粘贴到 claude_desktop_config.json</div>
-      <div class="code-block" id="mcp-config-code" style="padding-right:72px;min-height:100px"></div>`;
+      <div style="font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">粘贴到客户端配置文件</div>
+      <div class="code-block" id="mcp-config-code" style="padding-right:72px;min-height:80px"></div>`;
     updateMCPJson();
   } else {
-    const configPath = document.getElementById('mcp-fields-config-path')?.value.trim() || '/path/to/config.yaml';
+    const sseUrl = getMCPSseUrl();
     const fields = [
-      { label: 'Name',      value: 'knowledge-mcp',                           note: '服务名称，可自定义' },
-      { label: 'Command',   value: 'uvx',                                    note: '启动命令' },
-      { label: 'Arguments', value: `knowledge-mcp mcp --config ${configPath}`, note: '完整参数' },
-      { label: 'KB Name',   value: currentKB.kb_dir_name,                    note: '知识库标识（kb 参数）' },
+      { label: 'Type',     value: 'sse',        note: '连接类型' },
+      { label: 'URL',      value: sseUrl,        note: 'MCP 服务端点（Cherry Studio / Cursor 等填此项）' },
     ];
     el.innerHTML = `
-      <div style="margin-bottom:14px">
-        <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px">CONFIG 文件路径 <span style="font-weight:400;font-size:11.5px">（填入后 Arguments 自动更新）</span></label>
-        <input id="mcp-fields-config-path" class="form-input" style="font-size:13px;padding:8px 12px;border-radius:10px;font-family:'SF Mono',Monaco,monospace"
-          placeholder="/path/to/config.yaml" oninput="switchMCPTab('fields')">
+      <div style="background:var(--warn-light);border:1px solid rgba(181,133,11,.2);border-radius:11px;padding:10px 14px;margin-bottom:12px;font-size:12.5px;color:var(--warn)">
+        ⚠ 使用前请确认服务器安全组已开放 <strong>8001</strong> 端口（TCP 入方向）
       </div>
       <div style="display:flex;flex-direction:column;gap:6px">
         ${fields.map(f => `
           <div style="background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:10px 14px;display:flex;align-items:center;gap:10px;min-width:0">
-            <div style="width:82px;flex-shrink:0;border-right:1px solid var(--line);padding-right:10px">
+            <div style="width:60px;flex-shrink:0;border-right:1px solid var(--line);padding-right:10px">
               <div style="font-size:12px;font-weight:700;color:var(--ink)">${f.label}</div>
               <div style="font-size:10.5px;color:var(--muted);margin-top:1px;line-height:1.35">${f.note}</div>
             </div>
@@ -471,13 +465,12 @@ function refreshMCPPanel() {
   }
 }
 function updateMCPJson() {
-  const pathEl = document.getElementById('mcp-config-path');
   const nameEl = document.getElementById('mcp-server-name');
   const codeEl = document.getElementById('mcp-config-code');
   if (!codeEl) return;
-  const configPath = pathEl?.value.trim() || '/path/to/config.yaml';
   const serverName = nameEl?.value.trim() || 'knowledge-mcp';
-  const cfg = JSON.stringify({ mcpServers: { [serverName]: { command: 'uvx', args: ['knowledge-mcp', 'mcp', '--config', configPath] } } }, null, 2);
+  const sseUrl = getMCPSseUrl();
+  const cfg = JSON.stringify({ mcpServers: { [serverName]: { url: sseUrl } } }, null, 2);
   codeEl.innerHTML = escCode(cfg) + '<button class="copy-btn" onclick="copyCode(\'mcp-config-code\',this)">复制</button>';
 }
 

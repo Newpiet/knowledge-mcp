@@ -51,7 +51,16 @@ class MCP:
         self.mcp_server.tool(name="query_local", description="Simplified local mode query - Best for entity-specific queries. Focuses on finding specific concepts, tools, or entities within your domains.")(self.query_local)
         self.mcp_server.tool(name="query_global", description="Simplified global mode query - Best for relationship discovery. Focuses on understanding relationships and connections between different aspects of your domains.")(self.query_global)
         self.mcp_server.tool(name="query_hybrid", description="Simplified hybrid mode query - Best for cross-domain queries. Combines both entity-focused and relationship-focused retrieval, ideal for comprehensive coverage spanning multiple knowledge areas.")(self.query_hybrid)
-        self.mcp_server.run(transport="stdio")
+
+        import os
+        transport = os.environ.get("MCP_TRANSPORT", "stdio")
+        host = os.environ.get("MCP_HOST", "0.0.0.0")
+        port = int(os.environ.get("MCP_PORT", "8001"))
+        if transport == "sse":
+            logger.info(f"Starting MCP server with SSE transport on {host}:{port}")
+            self.mcp_server.run(transport="sse", host=host, port=port)
+        else:
+            self.mcp_server.run(transport="stdio")
         logger.info("MCP service initialized.")
 
     async def retrieve(self,

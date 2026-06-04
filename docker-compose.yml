@@ -30,9 +30,11 @@ services:
           memory: ${MEM_LIMIT:-4g}
 
   knowledge-mcp-mcp:
-    build: .
+    image: knowledge-mcp-knowledge-mcp-web:latest
     container_name: knowledge-mcp-mcp
     restart: unless-stopped
+    ports:
+      - "8001:8001"
     volumes:
       - kb_data:/app/kb
     command: mcp
@@ -41,6 +43,9 @@ services:
       CONFIG_PATH: /app/kb/config.yaml
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_API_BASE: ${OPENAI_API_BASE:-}
+      MCP_TRANSPORT: sse
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: 8001
     profiles:
       - mcp
 
