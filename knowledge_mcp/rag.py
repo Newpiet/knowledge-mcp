@@ -349,10 +349,16 @@ class RagManager:
             raise ValueError("text_content parameter is required when parse_method='text'")
         
         # Auto-select parse method if requested
+        TEXT_EXTENSIONS = {".txt", ".md", ".markdown", ".rst", ".csv", ".json", ".xml", ".html", ".htm"}
         if parse_method == "auto":
             if text_content is not None:
                 parse_method = "text"
                 kb_logger.info("Auto-selected 'text' parsing method (text_content provided)")
+            elif file_path.suffix.lower() in TEXT_EXTENSIONS:
+                # Read file content directly — no heavy PDF parser needed
+                text_content = file_path.read_text(encoding="utf-8", errors="replace")
+                parse_method = "text"
+                kb_logger.info(f"Auto-selected 'text' parsing method for {file_path.suffix} file")
             else:
                 parse_method = "multimodal"
                 kb_logger.info("Auto-selected 'multimodal' parsing method (no text_content provided)")

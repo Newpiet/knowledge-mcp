@@ -218,11 +218,8 @@ async function uploadFile(file) {
 
 function startSSE(docId) {
   if (sseMap[docId]) sseMap[docId].close();
-  const es = new EventSource(`${API}/knowledge-bases/${currentKB.id}/documents/${docId}/status`, {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  // Note: EventSource doesn't support custom headers natively; use URL param fallback
-  // We'll patch this with fetch-based SSE if needed, but try native first
+  // EventSource doesn't support custom headers — pass token as query param
+  const es = new EventSource(`${API}/knowledge-bases/${currentKB.id}/documents/${docId}/status?token=${encodeURIComponent(token)}`);
   es.onmessage = (e) => {
     const ev = JSON.parse(e.data);
     const doc = docs.find(d => d.id === docId);

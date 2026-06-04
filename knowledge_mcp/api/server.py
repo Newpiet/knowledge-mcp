@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, List
 
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Depends, Header
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Depends, Header, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -522,7 +522,14 @@ async def delete_document(kb_id: int, doc_id: int, user: dict = Depends(get_curr
 # --- Document status SSE ---
 
 @app.get("/api/knowledge-bases/{kb_id}/documents/{doc_id}/status")
-async def document_status_sse(kb_id: int, doc_id: int, user: dict = Depends(get_current_user)):
+async def document_status_sse(kb_id: int, doc_id: int, token: str = Query(...)):
+    """SSE stream — auth via ?token= query param (EventSource can't set headers)."""
+    payload = decode_token(token)
+    if not payload:
+        async def _deny():
+            yield f"data: {json.dumps({'error': '认证失败'})}\n\n"
+        return StreamingResponse(_deny(), media_type="text/event-stream")
+    user = payload
     """SSE stream that emits status events until the document reaches a terminal state."""
     _verify_kb_ownership(kb_id, user["user_id"])
 
