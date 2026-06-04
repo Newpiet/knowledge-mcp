@@ -444,29 +444,32 @@ function refreshMCPPanel() {
       <div class="code-block" id="mcp-config-code" style="padding-right:72px;min-height:100px"></div>`;
     updateMCPJson();
   } else {
-    const args = `knowledge-mcp mcp --config /path/to/config.yaml`;
+    const configPath = document.getElementById('mcp-fields-config-path')?.value.trim() || '/path/to/config.yaml';
     const fields = [
-      { label: 'Name',      value: 'knowledge-mcp',          note: '服务名称，可自定义' },
-      { label: 'Command',   value: 'uvx',                    note: '启动命令' },
-      { label: 'Arguments', value: args,                     note: '完整参数，替换 config 路径后使用' },
-      { label: 'KB Name',   value: currentKB.kb_dir_name,    note: '查询时传给 kb 参数的值' },
+      { label: 'Name',      value: 'knowledge-mcp',                           note: '服务名称，可自定义' },
+      { label: 'Command',   value: 'uvx',                                    note: '启动命令' },
+      { label: 'Arguments', value: `knowledge-mcp mcp --config ${configPath}`, note: '完整参数' },
+      { label: 'KB Name',   value: currentKB.kb_dir_name,                    note: '知识库标识（kb 参数）' },
     ];
     el.innerHTML = `
-      <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px">适用于 Cursor、Windsurf 等有图形界面的 MCP 客户端，逐字段填入即可。</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px">CONFIG 文件路径 <span style="font-weight:400;font-size:11.5px">（填入后 Arguments 自动更新）</span></label>
+        <input id="mcp-fields-config-path" class="form-input" style="font-size:13px;padding:8px 12px;border-radius:10px;font-family:'SF Mono',Monaco,monospace"
+          placeholder="/path/to/config.yaml" oninput="switchMCPTab('fields')">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
         ${fields.map(f => `
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg);border:1px solid var(--line);border-radius:12px">
-            <div style="width:80px;flex-shrink:0">
+          <div style="background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:10px 14px;display:flex;align-items:center;gap:10px;min-width:0">
+            <div style="width:82px;flex-shrink:0;border-right:1px solid var(--line);padding-right:10px">
               <div style="font-size:12px;font-weight:700;color:var(--ink)">${f.label}</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:1px">${f.note}</div>
+              <div style="font-size:10.5px;color:var(--muted);margin-top:1px;line-height:1.35">${f.note}</div>
             </div>
-            <code style="flex:1;font-size:12.5px;font-family:'SF Mono',Monaco,monospace;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(f.value)}">${esc(f.value)}</code>
-            <button class="copy-btn" style="position:static;flex-shrink:0" onclick="copyText('${esc(f.value).replace(/'/g,"\\'")}',this)">复制</button>
+            <code style="flex:1;min-width:0;font-size:12.5px;font-family:'SF Mono',Monaco,monospace;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(f.value)}">${esc(f.value)}</code>
+            <button class="copy-btn" style="position:static;flex-shrink:0;margin-left:4px" onclick="copyText('${esc(f.value).replace(/'/g,"\\'")}'  ,this)">复制</button>
           </div>`).join('')}
       </div>`;
   }
 }
-
 function updateMCPJson() {
   const pathEl = document.getElementById('mcp-config-path');
   const nameEl = document.getElementById('mcp-server-name');
