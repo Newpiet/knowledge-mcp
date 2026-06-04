@@ -394,9 +394,9 @@ function renderMCPConfig() {
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
-          ${_mcpExpanded ? `<div class="tabs">
-            <button class="tab ${_mcpTab==='json'?'active':''}" onclick="event.stopPropagation();_mcpTab='json';refreshMCPPanel()">JSON 配置</button>
-            <button class="tab ${_mcpTab==='fields'?'active':''}" onclick="event.stopPropagation();_mcpTab='fields';refreshMCPPanel()">字段配置</button>
+          ${_mcpExpanded ? `<div class="tabs" id="mcp-tabs">
+            <button class="tab ${_mcpTab==='json'?'active':''}" onclick="event.stopPropagation();switchMCPTab('json')">JSON 配置</button>
+            <button class="tab ${_mcpTab==='fields'?'active':''}" onclick="event.stopPropagation();switchMCPTab('fields')">字段配置</button>
           </div>` : ''}
           <span style="font-size:18px;color:var(--muted);transition:transform .2s;transform:rotate(${_mcpExpanded?'180':'0'}deg)">⌄</span>
         </div>
@@ -412,6 +412,15 @@ function renderMCPConfig_inplace() {
   tmp.innerHTML = renderMCPConfig();
   panel.replaceWith(tmp.firstElementChild);
   if (_mcpExpanded) refreshMCPPanel();
+}
+
+function switchMCPTab(tab) {
+  _mcpTab = tab;
+  // Update tab active state instantly in DOM — no re-render needed
+  document.querySelectorAll('#mcp-tabs .tab').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim() === (tab === 'json' ? 'JSON 配置' : '字段配置'));
+  });
+  refreshMCPPanel();
 }
 
 function refreshMCPPanel() {
