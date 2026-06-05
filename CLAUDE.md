@@ -42,6 +42,30 @@ docs/
   - prd.md: project requirements
   - plan.md: development plan
 
+# 调试经验教训
+
+## 修 Bug 前必须先定位来源
+- **禁止凭猜测连续尝试**：每次修改前必须有明确的"问题在这里"的证据
+- 做法：先加 `logger.info(f"关键变量: {xxx}")` 打印出来，确认来源再动手
+- 反例：`history_turns` 问题，猜是 Cherry Studio 注入 → 错；猜是函数签名 → 改崩了；最终靠日志才发现来自 `kb_config`
+
+## 关键路径用 info 不用 debug
+- 调试关键逻辑时用 `logger.info`，不要用 `logger.debug`
+- debug 级别默认不输出，出问题时看不到有没有触发，浪费排查时间
+
+## 用第三方框架前先查约束
+- 改函数签名前先查框架是否支持，例如 FastMCP 明确不支持 `**kwargs` 工具函数
+- 查法：搜官方文档或直接看报错信息（`ValueError: Functions with **kwargs are not supported as tools`）
+
+## 版本兼容问题用自适应方案
+- 不要硬编码"这个版本支持/不支持"，用反射动态检查
+- 正例：`inspect.signature(QueryParam.__init__).parameters.keys()` 自动适配任意版本
+- 反例：手动维护一个"不支持字段"黑名单，换版本就失效
+
+## docker cp 后必须清 .pyc 再重启
+- Python 有字节码缓存，docker cp 更新 .py 文件后如果 .pyc 没清，可能仍跑旧代码
+- 标准流程：`docker cp file container:/path && docker exec container find /app -name '*.pyc' -delete && docker restart container`
+
 # 部署经验（阿里云 ECS）
 
 ## 服务器信息
