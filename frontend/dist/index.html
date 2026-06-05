@@ -382,15 +382,14 @@ let _mcpTab = 'json'; // 'json' | 'fields'
 let _mcpExpanded = false; // collapsed by default
 
 function renderMCPConfig() {
-  if (!currentKB) return '';
   return `
     <div class="glass-panel" style="border-radius:20px;margin-bottom:20px;overflow:hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;cursor:pointer;user-select:none" onclick="_mcpExpanded=!_mcpExpanded;renderMCPConfig_inplace()">
         <div style="display:flex;align-items:center;gap:10px">
           <span style="font-size:18px">🔌</span>
           <div>
-            <div style="font-size:15px;font-weight:700">MCP 接入配置</div>
-            <div style="font-size:12.5px;color:var(--muted);margin-top:1px">将此知识库接入 Claude Desktop 或任意支持 MCP 的客户端</div>
+            <div style="font-size:15px;font-weight:700">MCP 全局接入</div>
+            <div style="font-size:12.5px;color:var(--muted);margin-top:1px">一次配置，AI 自动访问您的所有知识库</div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
@@ -544,6 +543,9 @@ function renderDashboard(root) {
             <button class="btn btn-primary btn-lg" onclick="showCreateModal=true;renderCreateModal()">＋ 新建知识空间</button>
           </div>
         </div>
+        <!-- MCP Global Config -->
+        ${renderMCPConfig()}
+
         <!-- Section header -->
         <div class="section-header">
           <div><div class="section-title">知识库项目</div><div style="font-size:13px;color:var(--muted);margin-top:3px">管理您的独立隔离知识库</div></div>
@@ -553,6 +555,7 @@ function renderDashboard(root) {
       </div>
     </main>`;
   loadKBs();
+  if (_mcpExpanded) refreshMCPPanel();
 }
 
 function renderDetail(root) {
@@ -591,9 +594,6 @@ function renderDetail(root) {
           </div>
           <div class="stat-row" id="doc-stats"></div>
         </div>
-
-        <!-- MCP Config -->
-        ${renderMCPConfig()}
 
         <!-- Two Column -->
         <div style="display:grid;grid-template-columns:minmax(0,58fr) minmax(0,42fr);gap:20px;align-items:start">
@@ -637,7 +637,6 @@ function renderDetail(root) {
     </main>`;
 
   renderKBHeader();
-  if (_mcpExpanded) refreshMCPPanel();
   setupUpload();
   loadDocs();
 }

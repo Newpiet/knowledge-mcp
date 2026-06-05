@@ -45,12 +45,19 @@ class MCP:
             """),
         )
         # Register tools using decorators
-        self.mcp_server.tool(name="retrieve", description="Returns the retrieval results only. Good when the client AI needs evidence for its own chain-of-thought or wish to cross-check multiple modes/top-k values cheaply. Retrieves raw context passages from a knowledge base without synthesizing an LLM answer. Client AI must generate the answer and that increases token volume for the client AI. Faster response, good for multiple queries.")(self.retrieve)
-        self.mcp_server.tool(name="answer", description="Returns an LLM-synthesised answer from the retrieval results. Good when you want a concise answer in one call. Uses the LLM of the mcp server to generate an answer from a knowledge base and return it with citations. Server AI must generate the answer and that increases token volume for this LLM.")(self.answer)
-        self.mcp_server.tool(name="list_knowledgebases", description="List all available knowledge bases.")(self.list_knowledgebases)
-        self.mcp_server.tool(name="query_local", description="Simplified local mode query - Best for entity-specific queries. Focuses on finding specific concepts, tools, or entities within your domains.")(self.query_local)
-        self.mcp_server.tool(name="query_global", description="Simplified global mode query - Best for relationship discovery. Focuses on understanding relationships and connections between different aspects of your domains.")(self.query_global)
-        self.mcp_server.tool(name="query_hybrid", description="Simplified hybrid mode query - Best for cross-domain queries. Combines both entity-focused and relationship-focused retrieval, ideal for comprehensive coverage spanning multiple knowledge areas.")(self.query_hybrid)
+        # Register tools — keep it minimal: list, retrieve, answer
+        self.mcp_server.tool(
+            name="list_knowledgebases",
+            description="List all available knowledge bases with metadata. Call this first to discover what knowledge is available before querying.",
+        )(self.list_knowledgebases)
+        self.mcp_server.tool(
+            name="retrieve",
+            description="Retrieve raw context passages from a knowledge base. Returns source text without LLM synthesis — useful when you need evidence for your own reasoning or want to cross-check facts. Faster than 'answer'.",
+        )(self.retrieve)
+        self.mcp_server.tool(
+            name="answer",
+            description="Query a knowledge base and get an LLM-synthesized answer with citations. One-step convenience — the server generates the answer from retrieved context. Use when you want a direct, concise answer.",
+        )(self.answer)
 
         import os
         transport = os.environ.get("MCP_TRANSPORT", "stdio")
@@ -130,145 +137,28 @@ class MCP:
 
         return _wrap_result(answer)
 
-    async def query_local(self,
-        kb: Annotated[str, Field(description="Knowledge base to query")],
-        query: Annotated[str, Field(description="Natural-language query.")],
-    ) -> str:
-        """
-        Simplified local mode query - Best for entity-specific queries.
-        
-        Local mode focuses on entity-centric retrieval and is excellent for questions like:
-        - "What are the specific network security tools mentioned?"
-        - "Which processes are relevant to vulnerability management?"
-        
-        Uses optimized defaults: mode='local', top_k=30, LLM generation, multiple paragraphs.
-        """
-        logger.info(f"Executing query_local for KB '{kb}'")
-        
-        # Fixed optimal parameters for local mode
-        query_kwargs = {
-            'mode': 'local',
-            'top_k': 30,
-            'response_type': 'Multiple Paragraphs',
-            'only_need_context': False
-        }
-        
-        try:
-            answer: str = await self.rag_manager.query(
-                kb_name=kb,
-                query_text=query,
-                **query_kwargs
-            )
-        except (KnowledgeBaseNotFoundError, ConfigurationError) as e:
-            logger.error(f"Configuration or KB not found error during query_local for '{kb}': {e}")
-            raise ValueError(str(e)) from e
-        except RAGManagerError as e:
-            logger.error(f"Runtime RAG error during query_local for '{kb}': {e}", exc_info=True)
-            raise RuntimeError(f"Query failed: {e}") from e
-        except Exception as e:
-            logger.exception(f"Unexpected error during query_local for '{kb}': {e}")
-            raise RuntimeError(f"An unexpected error occurred: {e}") from e
-
-        return _wrap_result(answer)
-
-    async def query_global(self,
-        kb: Annotated[str, Field(description="Knowledge base to query")],
-        query: Annotated[str, Field(description="Natural-language query.")],
-    ) -> str:
-        """
-        Simplified global mode query - Best for relationship discovery.
-        
-        Global mode focuses on relationship-centric retrieval and is valuable for queries like:
-        - "How do network configuration practices relate to security processes?"
-        - "What are the dependencies between different security procedures?"
-        
-        Uses optimized defaults: mode='global', top_k=30, LLM generation, multiple paragraphs.
-        """
-        logger.info(f"Executing query_global for KB '{kb}'")
-        
-        # Fixed optimal parameters for global mode
-        query_kwargs = {
-            'mode': 'global',
-            'top_k': 30,
-            'response_type': 'Multiple Paragraphs',
-            'only_need_context': False
-        }
-        
-        try:
-            answer: str = await self.rag_manager.query(
-                kb_name=kb,
-                query_text=query,
-                **query_kwargs
-            )
-        except (KnowledgeBaseNotFoundError, ConfigurationError) as e:
-            logger.error(f"Configuration or KB not found error during query_global for '{kb}': {e}")
-            raise ValueError(str(e)) from e
-        except RAGManagerError as e:
-            logger.error(f"Runtime RAG error during query_global for '{kb}': {e}", exc_info=True)
-            raise RuntimeError(f"Query failed: {e}") from e
-        except Exception as e:
-            logger.exception(f"Unexpected error during query_global for '{kb}': {e}")
-            raise RuntimeError(f"An unexpected error occurred: {e}") from e
-
-        return _wrap_result(answer)
-
-    async def query_hybrid(self,
-        kb: Annotated[str, Field(description="Knowledge base to query")],
-        query: Annotated[str, Field(description="Natural-language query.")],
-    ) -> str:
-        """
-        Simplified hybrid mode query - Best for cross-domain queries.
-        
-        Hybrid mode combines both entity-focused (local) and relationship-focused (global) retrieval,
-        making it ideal for comprehensive coverage that spans multiple knowledge areas. Perfect for:
-        - Cyber security processes and network configuration queries
-        - Questions requiring both process knowledge and technical implementation details
-        
-        Uses optimized defaults: mode='hybrid', top_k=30, LLM generation, multiple paragraphs.
-        """
-        logger.info(f"Executing query_hybrid for KB '{kb}'")
-        
-        # Fixed optimal parameters for hybrid mode
-        query_kwargs = {
-            'mode': 'hybrid',
-            'top_k': 30,
-            'response_type': 'Multiple Paragraphs',
-            'only_need_context': False
-        }
-        
-        try:
-            answer: str = await self.rag_manager.query(
-                kb_name=kb,
-                query_text=query,
-                **query_kwargs
-            )
-        except (KnowledgeBaseNotFoundError, ConfigurationError) as e:
-            logger.error(f"Configuration or KB not found error during query_hybrid for '{kb}': {e}")
-            raise ValueError(str(e)) from e
-        except RAGManagerError as e:
-            logger.error(f"Runtime RAG error during query_hybrid for '{kb}': {e}", exc_info=True)
-            raise RuntimeError(f"Query failed: {e}") from e
-        except Exception as e:
-            logger.exception(f"Unexpected error during query_hybrid for '{kb}': {e}")
-            raise RuntimeError(f"An unexpected error occurred: {e}") from e
-
-        return _wrap_result(answer)
-
     async def list_knowledgebases(self) -> str:
-        """Lists all available knowledge bases and their descriptions."""
+        """Lists all available knowledge bases with metadata (name, description, document count)."""
         logger.info("Executing list_knowledgebases")
         try:
-            # kb_manager.list_kbs is now async and returns Dict[str, str]
             kb_dict: Dict[str, str] = await self.kb_manager.list_kbs()
 
-            # Transform the dict into the desired list of objects format
-            kb_list_formatted = [
-                {"name": name, "description": description}
-                for name, description in kb_dict.items()
-            ]
+            kb_list_formatted = []
+            for name, description in kb_dict.items():
+                info: dict = {"name": name, "description": description}
+                # Count documents in the KB directory
+                kb_path = self.kb_manager.get_kb_path(name)
+                try:
+                    docs_dir = kb_path / "documents"
+                    if docs_dir.is_dir():
+                        info["document_count"] = sum(1 for f in docs_dir.iterdir() if f.is_file())
+                    else:
+                        info["document_count"] = 0
+                except OSError:
+                    info["document_count"] = 0
+                kb_list_formatted.append(info)
 
-            # Wrap in the final structure and return as JSON
-            result = {"knowledge_bases": kb_list_formatted}
+            result = {"knowledge_bases": kb_list_formatted, "total": len(kb_list_formatted)}
             return json.dumps(result)
 
         except KnowledgeBaseError as e:
