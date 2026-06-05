@@ -103,7 +103,7 @@ class MCP:
 
         return _wrap_result(context_result)
 
-    async def answer(self, 
+    async def answer(self,
         kb: Annotated[str, Field(description="Knowledge base directory name — use the 'kb' field from list_knowledgebases results")],
         query: Annotated[str, Field(description="Natural-language query.")],
         mode: Annotated[str, Field("mix", description='Retrieval mode ("mix", "local", "global", "hybrid", "naive", "bypass") default: "mix"')],
