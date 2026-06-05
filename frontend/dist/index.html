@@ -425,7 +425,7 @@ function switchMCPTab(tab) {
 
 function getMCPSseUrl() {
   const host = window.location.hostname || '139.196.25.63';
-  return `http://${host}:8001/sse`;
+  return `http://${host}:8001/sse/`;
 }
 
 function refreshMCPPanel() {
@@ -470,7 +470,7 @@ function updateMCPJson() {
   if (!codeEl) return;
   const serverName = nameEl?.value.trim() || 'knowledge-mcp';
   const sseUrl = getMCPSseUrl();
-  const cfg = JSON.stringify({ mcpServers: { [serverName]: { url: sseUrl } } }, null, 2);
+  const cfg = JSON.stringify({ mcpServers: { [serverName]: { type: 'sse', url: sseUrl } } }, null, 2);
   codeEl.innerHTML = escCode(cfg) + '<button class="copy-btn" onclick="copyCode(\'mcp-config-code\',this)">复制</button>';
 }
 
