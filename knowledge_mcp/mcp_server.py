@@ -180,14 +180,25 @@ class MCP:
                     "created_at": kb["created_at"],
                 }
 
-                # Layer 2: get document titles as content hints
+                # Layer 2: aggregate AI-extracted topics + document titles as content hints
                 doc_rows = conn.execute("""
-                    SELECT original_name FROM documents
+                    SELECT original_name, topics FROM documents
                     WHERE kb_id = (SELECT id FROM knowledge_bases WHERE kb_dir_name = ?)
                       AND status = 'completed'
                     ORDER BY created_at DESC LIMIT 10
                 """, (kb["kb_dir_name"],)).fetchall()
                 info["document_titles"] = [r["original_name"] for r in doc_rows]
+
+                # Collect and deduplicate AI-extracted topics across all documents
+                all_topics: list[str] = []
+                for row in doc_rows:
+                    if row["topics"]:
+                        for t in row["topics"].split(","):
+                            t = t.strip()
+                            if t and t not in all_topics:
+                                all_topics.append(t)
+                if all_topics:
+                    info["topics"] = all_topics
 
                 kb_list.append(info)
 

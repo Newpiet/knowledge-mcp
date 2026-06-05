@@ -53,11 +53,18 @@ def init_db(base_dir: str = "/app/kb") -> None:
                     file_size INTEGER NOT NULL,
                     status TEXT NOT NULL DEFAULT 'pending',
                     error_message TEXT,
+                    topics TEXT,
                     created_at TEXT NOT NULL,
                     FOREIGN KEY (kb_id) REFERENCES knowledge_bases(id),
                     FOREIGN KEY (user_id) REFERENCES users(id)
                 )
             """)
+            # Migration: add topics column if it doesn't exist yet
+            try:
+                conn.execute("ALTER TABLE documents ADD COLUMN topics TEXT")
+                conn.commit()
+            except sqlite3.OperationalError:
+                pass  # Column already exists
             conn.commit()
         finally:
             conn.close()

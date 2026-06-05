@@ -32,6 +32,7 @@ CONFIG_PATH = os.environ.get("CONFIG_PATH", str(Path(BASE_DIR) / "config.yaml"))
 JWT_SECRET = os.environ.get("JWT_SECRET", None)
 MAX_CONCURRENT_INGESTIONS = int(os.environ.get("MAX_CONCURRENT_INGESTIONS", "3"))
 UPLOAD_MAX_SIZE = 50 * 1024 * 1024  # 50MB
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 
 # --- Shared managers (initialized at startup) ---
 _rag_manager = None
@@ -244,6 +245,43 @@ def _db_set_status(doc_id: int, status: str, error: str | None = None) -> None:
         conn.close()
 
 
+async def _extract_topics(doc_id: int, file_path: Path) -> None:
+    """Call DeepSeek API to extract 3-5 topic keywords from a document and save to DB."""
+    if not DEEPSEEK_API_KEY:
+        return
+    try:
+        content = file_path.read_text(encoding="utf-8", errors="replace")[:3000]
+        import urllib.request, json as _json
+        payload = _json.dumps({
+            "model": "deepseek-chat",
+            "messages": [
+                {"role": "system", "content": "你是一个文档分析助手。请从文档内容中提取 3-5 个最核心的主题关键词，用于帮助 AI 理解该文档的内容范围。只返回关键词列表，以逗号分隔，不要其他内容。例如：土壤分析,施肥技术,水稻种植"},
+                {"role": "user", "content": f"文档内容：\n{content}"}
+            ],
+            "max_tokens": 100,
+            "temperature": 0.3,
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            "https://api.deepseek.com/chat/completions",
+            data=payload,
+            headers={"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            result = _json.loads(resp.read())
+            topics = result["choices"][0]["message"]["content"].strip()
+
+        conn = get_connection(BASE_DIR)
+        try:
+            conn.execute("UPDATE documents SET topics=? WHERE id=?", (topics, doc_id))
+            conn.commit()
+        finally:
+            conn.close()
+        logger.info(f"Topics extracted for doc {doc_id}: {topics}")
+    except Exception as e:
+        logger.warning(f"Topic extraction failed for doc {doc_id}: {e}")
+
+
 async def _ingest_document(kb_dir_name: str, file_path: Path, doc_id: int, rag_doc_id: str):
     """Ingest a document: wait for semaphore slot, then run via RagManager."""
     # Waiting for a free slot — document stays in 'queued' state
@@ -257,6 +295,8 @@ async def _ingest_document(kb_dir_name: str, file_path: Path, doc_id: int, rag_d
             _db_set_status(doc_id, "completed")
             _publish(doc_id, {"status": "completed"})
             logger.info(f"Document {doc_id} ingested successfully into {kb_dir_name}")
+            # Extract topics asynchronously — don't block the response
+            asyncio.create_task(_extract_topics(doc_id, file_path))
         except Exception as e:
             err_msg = str(e)[:500]
             _db_set_status(doc_id, "failed", error=err_msg)

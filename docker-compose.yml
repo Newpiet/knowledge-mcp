@@ -18,6 +18,7 @@ services:
       OPENAI_API_BASE: ${OPENAI_API_BASE:-}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-*}
       MAX_CONCURRENT_INGESTIONS: ${MAX_CONCURRENT_INGESTIONS:-3}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 30s
