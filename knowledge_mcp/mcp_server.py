@@ -71,7 +71,7 @@ class MCP:
         logger.info("MCP service initialized.")
 
     async def retrieve(self,
-        kb: Annotated[str, Field(description="Knowledge base to query")],
+        kb: Annotated[str, Field(description="Knowledge base directory name — use the 'kb' field from list_knowledgebases results")],
         query: Annotated[str, Field(description="Natural-language query.")],
         mode: Annotated[str, Field("mix", description='Retrieval mode ("mix", "local", "global", "hybrid", "naive", "bypass") default: "mix"')],
         top_k: Annotated[int, Field(30, ge=5, le=120, description="Number of query results to return (5-120). 30 is reasonable.")],
@@ -104,7 +104,7 @@ class MCP:
         return _wrap_result(context_result)
 
     async def answer(self, 
-        kb: Annotated[str, Field(description="Knowledge base to query")],
+        kb: Annotated[str, Field(description="Knowledge base directory name — use the 'kb' field from list_knowledgebases results")],
         query: Annotated[str, Field(description="Natural-language query.")],
         mode: Annotated[str, Field("mix", description='Retrieval mode ("mix", "local", "global", "hybrid", "naive", "bypass") default: "mix"')],
         top_k: Annotated[int, Field(30, ge=5, le=120, description="Number of query results to return (5-120). 30 is reasonable.")],
@@ -138,34 +138,73 @@ class MCP:
         return _wrap_result(answer)
 
     async def list_knowledgebases(self) -> str:
-        """Lists all available knowledge bases with metadata (name, description, document count)."""
+        """Lists all knowledge bases with rich metadata from the platform database.
+
+        Returns name, description, document stats, and document titles to help
+        the AI decide which knowledge base to query.
+        """
         logger.info("Executing list_knowledgebases")
+        import sqlite3
+        import os
+
+        db_path = os.path.join(os.environ.get("KB_BASE_DIR", "/app/kb"), "users.db")
         try:
-            kb_dict: Dict[str, str] = await self.kb_manager.list_kbs()
+            conn = sqlite3.connect(db_path, timeout=10)
+            conn.row_factory = sqlite3.Row
 
-            kb_list_formatted = []
-            for name, description in kb_dict.items():
-                info: dict = {"name": name, "description": description}
-                # Count documents in the KB directory
-                kb_path = self.kb_manager.get_kb_path(name)
-                try:
-                    docs_dir = kb_path / "documents"
-                    if docs_dir.is_dir():
-                        info["document_count"] = sum(1 for f in docs_dir.iterdir() if f.is_file())
-                    else:
-                        info["document_count"] = 0
-                except OSError:
-                    info["document_count"] = 0
-                kb_list_formatted.append(info)
+            # Get all KBs with document stats
+            kbs = conn.execute("""
+                SELECT
+                    kb.kb_dir_name,
+                    kb.name,
+                    kb.description,
+                    kb.domain,
+                    kb.created_at,
+                    COUNT(d.id) AS total_docs,
+                    SUM(CASE WHEN d.status = 'completed' THEN 1 ELSE 0 END) AS indexed_docs
+                FROM knowledge_bases kb
+                LEFT JOIN documents d ON d.kb_id = kb.id
+                WHERE kb.status = 'active'
+                GROUP BY kb.id
+            """).fetchall()
 
-            result = {"knowledge_bases": kb_list_formatted, "total": len(kb_list_formatted)}
-            return json.dumps(result)
+            kb_list = []
+            for kb in kbs:
+                info: dict = {
+                    "kb": kb["kb_dir_name"],
+                    "name": kb["name"],
+                    "description": kb["description"] or "暂无描述",
+                    "domain": kb["domain"] or "",
+                    "total_documents": kb["total_docs"],
+                    "indexed_documents": kb["indexed_docs"] or 0,
+                    "created_at": kb["created_at"],
+                }
 
-        except KnowledgeBaseError as e:
-            logger.error(f"Error listing knowledge bases: {e}", exc_info=True)
-            # Use ValueError for user-facing errors expected by FastMCP
-            raise ValueError(f"Failed to list knowledge bases: {e}") from e
+                # Layer 2: get document titles as content hints
+                doc_rows = conn.execute("""
+                    SELECT original_name FROM documents
+                    WHERE kb_id = (SELECT id FROM knowledge_bases WHERE kb_dir_name = ?)
+                      AND status = 'completed'
+                    ORDER BY created_at DESC LIMIT 10
+                """, (kb["kb_dir_name"],)).fetchall()
+                info["document_titles"] = [r["original_name"] for r in doc_rows]
+
+                kb_list.append(info)
+
+            conn.close()
+
+            result = {"knowledge_bases": kb_list, "total": len(kb_list)}
+            return json.dumps(result, ensure_ascii=False)
+
+        except sqlite3.Error as e:
+            logger.warning(f"Could not read platform DB ({db_path}): {e}, falling back to filesystem")
+            # Fallback: use filesystem-based listing
+            try:
+                kb_dict: Dict[str, str] = await self.kb_manager.list_kbs()
+                kb_list = [{"kb": name, "name": name, "description": desc} for name, desc in kb_dict.items()]
+                return json.dumps({"knowledge_bases": kb_list, "total": len(kb_list)}, ensure_ascii=False)
+            except KnowledgeBaseError as e2:
+                raise ValueError(f"Failed to list knowledge bases: {e2}") from e2
         except Exception as e:
             logger.exception(f"Unexpected error during list_knowledgebases: {e}")
-            # Use RuntimeError for internal server errors expected by FastMCP
             raise RuntimeError(f"An unexpected server error occurred: {e}") from e
