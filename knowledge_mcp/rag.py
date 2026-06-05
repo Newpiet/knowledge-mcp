@@ -259,6 +259,14 @@ class RagManager:
             
             kb_logger.info(f"Query parameters: {final_query_params}")
 
+            # Filter to only supported QueryParam fields to avoid version incompatibility
+            import inspect as _inspect
+            valid_qp_fields = set(_inspect.signature(QueryParam.__init__).parameters.keys()) - {'self'}
+            unsupported = set(final_query_params.keys()) - valid_qp_fields
+            if unsupported:
+                kb_logger.debug(f"Filtering unsupported QueryParam fields: {unsupported}")
+                final_query_params = {k: v for k, v in final_query_params.items() if k in valid_qp_fields}
+
             # Create QueryParam instance
             try:
                 query_param_instance = QueryParam(**final_query_params)
